@@ -1,7 +1,8 @@
 # Brainy Media — Mentor-Led Daily Practice Platform
 
 **Product specification and customisation ideas**
-Version 0.2 · September 2026 · Draft for owner review
+Version 0.3 · September 2026 · Draft for owner review
+Change in 0.3: design system, creative direction and the admin customisation matrix (section 14) added alongside the UI prototype.
 Change in 0.2: students are enrolled by their mentor from an Excel sheet, not by the owner.
 
 ---
@@ -260,6 +261,52 @@ The existing app already has Next.js, Supabase, AI quiz generation, results with
 6. Which reward types should exist in the catalogue at launch?
 7. Over-capacity: when a mentor's sheet has more students than seats left, should the extras wait for the owner to place them (recommended) or be rejected outright?
 8. Welcome message: email only, or email plus WhatsApp to the phone number from the sheet?
+
+---
+
+## 14. Design system and admin customisation (v0.3)
+
+### Brand and colour
+
+The theme is taken directly from the BMN logo: a teal gradient for the wordmark and a gold caduceus.
+
+| Token | Value | Used for |
+|---|---|---|
+| Primary | `#2a8d78` | Buttons, links, progress, submitted tiles |
+| Deep | `#0f3d34` | Headers, hero backgrounds, dark cards |
+| Accent | `#f5d020` | Streak flame, highlights, points, today's task |
+| Page | derived tint of primary | App background |
+| Status | good `#0ca30c`, warning `#fab219`, critical `#d03b3b` | Heatmap and health pills, always paired with an icon and a label |
+
+The logo sits on a white chip so it reads on both the deep-teal header and light cards. Every other colour in the interface is derived from the three brand colours at runtime, so the owner changes three values and the whole product follows.
+
+Typography: Outfit for display text (headings, big numbers), Manrope for body text. Data charts use the validated single-hue teal ramp and never encode meaning by colour alone.
+
+### Creative direction
+
+- **The flame is the hero.** An animated streak flame anchors the student home, the login page and the landing hero. It dims to grey when the streak is zero.
+- **One-screen home.** Today's task, streak, points and rank are the only things above the fold on a phone.
+- **Deep-teal gradient headers** with a white nav pill for the active section, and an ECG pulse line on the landing hero as a nod to the caduceus.
+- **Cards lift on hover, sections rise in on load**, and motion is disabled for users who prefer reduced motion.
+- **Status is icon plus label**, never colour alone: heatmap tiles carry a glyph, health pills carry a dot and a word.
+
+### What the owner can customise (admin console › Customise)
+
+| Tab | Controls |
+|---|---|
+| **Branding** | App name, short name, tagline, logo (URL or upload), primary, deep and accent colours with presets, corner radius, live preview |
+| **Labels** | Rename Owner, Mentor, Student, Batch, Daily Task, Points and Streak everywhere in the product |
+| **Points** | Every value in the economy, plus level names and thresholds |
+| **Streaks** | Whether a streak counts on submission or verification, freeze earn rate and cap, late window and late credit, comeback restore percentage, milestone days |
+| **Schedule** | Daily deadline, mentor publish-by time, early-bird cut-off, timezone, rest days, seats per mentor |
+| **Features** | Task types mentors may assign, WhatsApp, AI verification assist, doubt threads, teams, seasons, rewards, parent digest, Hindi UI |
+| **Messages** | Welcome, reminder and verified templates with placeholders and a live preview |
+
+Settings export and import as JSON, and reset to defaults in one click. In the prototype they persist in the browser; in phase 1 they move to a `settings` table read by every role.
+
+### Prototype scope
+
+The UI prototype on the `claude/brainy-media-webapp-blgn1o` branch covers the landing page, role login (Student ID + email code, mentor password, owner with second factor), the student home and full daily task flow (warm-up test, analysis, upload, waiting for tick), the mentor dashboard, verification inbox, assign task and Excel enrolment screens, and the owner overview and customisation console. All data is sample data; no backend calls are made yet.
 
 ---
 
