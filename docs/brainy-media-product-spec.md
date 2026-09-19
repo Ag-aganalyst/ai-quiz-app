@@ -1,7 +1,8 @@
 # Brainy Media — Mentor-Led Daily Practice Platform
 
 **Product specification and customisation ideas**
-Version 0.1 · September 2026 · Draft for owner review
+Version 0.2 · September 2026 · Draft for owner review
+Change in 0.2: students are enrolled by their mentor from an Excel sheet, not by the owner.
 
 ---
 
@@ -19,7 +20,7 @@ The product's job is to make that daily loop **effortless for students, fast for
 |---|---|---|
 | **Owner (Admin)** | The educator who runs Brainy Media | Everything: all mentors, batches, students, settings and reports |
 | **Mentor** | A teacher responsible for one batch | Only their own batch of up to 50 students |
-| **Student** | A learner enrolled by the owner or via a sign-up link | Only their own mentor, their own batch, and their own data |
+| **Student** | A learner enrolled by their mentor from an Excel sheet | Only their own mentor, their own batch, and their own data |
 
 Access rules:
 
@@ -31,13 +32,18 @@ Access rules:
 
 ## 3. Login and onboarding
 
-### Student
+### Student (enrolled by their mentor)
 
-1. The owner adds a student (name, email, optional phone), one at a time or by CSV upload. A public sign-up link can also be enabled.
-2. The system generates a unique Student ID, for example `BM-2026-0143`, and assigns the student to a mentor automatically (see section 4).
-3. The student receives a welcome email containing their Student ID, their mentor's name, and a one-tap login link.
-4. Login is passwordless: enter the Student ID, receive a 6-digit code by email, enter the code. There are no passwords to forget and no reset flows to support. An optional "set a password" can be added later for students who prefer it.
-5. First login walks the student through a short setup: profile photo, exam target, preferred reminder time.
+Students do not sign themselves up. Their mentor enrols them by uploading an Excel sheet.
+
+1. The mentor opens **Add students** in their dashboard and downloads the Excel template. Columns: **Name, Phone, Email**. Optional columns: exam target, city.
+2. The mentor fills the sheet and uploads it (`.xlsx` or `.csv`). A quick **Add one student** form covers the odd single addition.
+3. Before anything is saved, every row is validated: required fields present, valid email, 10-digit phone, no duplicates within the sheet, no student already enrolled anywhere in Brainy Media (matched on email or phone), and seats remaining in the batch.
+4. A preview shows each row as **ready**, **needs a fix** (with the reason), or **will be skipped**. The mentor corrects rows inline or re-uploads, then confirms.
+5. On confirm, each enrolled student gets a unique Student ID, for example `BM-2026-0143`, is placed in the mentor's batch, and receives a welcome email containing their Student ID, their mentor's name and a one-tap login link. An optional WhatsApp copy of the same message goes to the phone number.
+6. Login is passwordless: enter the Student ID, receive a 6-digit code by email, enter the code. There are no passwords to forget and no reset flows to support. An optional "set a password" can be added later for students who prefer it.
+7. First login walks the student through a short setup: profile photo, exam target, preferred reminder time.
+8. The mentor's roster shows an activation status for every student, **Invited** or **Active**, with a one-tap **Resend invite** for anyone who has not logged in yet.
 
 ### Mentor
 
@@ -51,15 +57,16 @@ Email + password with a mandatory second factor (OTP by email), since this accou
 
 ---
 
-## 4. Automatic mentor assignment
+## 4. Batch membership and the 50-seat limit
 
 Rule: each mentor holds at most **50 students**.
 
-When a new student is created:
+Because mentors enrol their own students, assignment is automatic by construction: every student in a mentor's sheet lands in that mentor's batch. The system's job is to protect the limit and prevent duplicates.
 
-1. Find every mentor marked "accepting students" with fewer than 50 students.
-2. Assign the student to the mentor with the **fewest** students. This keeps batches balanced instead of filling one mentor first. The owner can switch to "fill sequentially" if preferred.
-3. If no mentor has room, the student goes to a waitlist and the owner is alerted to add a mentor.
+1. The **Add students** screen always shows seats remaining, for example "38 of 50 seats filled, 12 left", before the mentor uploads anything.
+2. If a sheet contains more valid rows than seats, the mentor chooses which rows to enrol within the limit. The remaining rows are held in a **waiting list** visible to the owner.
+3. The owner places waiting students with another mentor who has room, or adds a new mentor. Nothing is lost, and no mentor can exceed 50.
+4. Enrolment is one student, one batch. A phone number or email already enrolled under any mentor is rejected at upload with a clear message, so the same student can never appear in two batches.
 
 The owner can transfer a student between batches at any time; the student's history moves with them.
 
@@ -167,6 +174,7 @@ Designed around "what do I need to do right now":
 4. **At-risk list**: students who missed two or more of the last five days, or whose scores are falling.
 5. **Planner**: assign tasks for the week, duplicate last week, or pull from the owner's master plan.
 6. **Question bank and material library**: upload once, reuse everywhere.
+7. **Add students and roster**: Excel template download, drag-and-drop upload, validation preview, seats remaining, activation status and resend invite.
 
 ---
 
@@ -174,12 +182,13 @@ Designed around "what do I need to do right now":
 
 1. **Overview**: total students, active today, average batch completion, average verification turnaround per mentor.
 2. **Mentor scorecard**: assignment consistency, verification speed, batch completion rate, batch average score. This is how the owner spots mentors who need support.
-3. **Capacity**: seats left per mentor, waitlist size, projected date when a new mentor is needed.
+3. **Capacity and waiting list**: seats left per mentor, students waiting for a seat, one-tap placement of a waiting student with a mentor who has room, and the projected date a new mentor is needed.
 4. **Master plan**: publish a task to every batch at once; mentors can accept it or replace it for their batch.
 5. **Content library**: shared question banks and materials for all mentors.
 6. **Announcements**: broadcast to everyone, one batch, or all mentors.
-7. **Settings**: point values, streak rules, deadline and rest days, branding (logo, colours), email templates, sign-up link on/off.
+7. **Settings**: point values, streak rules, deadline and rest days, branding (logo, colours), email and WhatsApp templates.
 8. **Exports**: CSV of students, attendance, scores and points for any date range.
+9. **Enrolment log**: every sheet a mentor uploaded, who uploaded it, when, and the result per row, kept for audit.
 
 ---
 
@@ -197,6 +206,7 @@ Designed around "what do I need to do right now":
 
 ### For mentors
 
+- **Frictionless enrolment.** Downloadable Excel template, drag-and-drop upload, duplicate and typo detection (for example `gmial.com`), and a preview before a single email is sent.
 - **Task templates and recurring tasks** ("Daily current affairs quiz, Mon to Sat").
 - **AI-assisted verification.** The model reads the uploaded sheet, suggests a mark and flags anomalies; the mentor only confirms.
 - **Bulk actions.** Tick all clean uploads at once; remind all non-submitters at once.
@@ -208,7 +218,7 @@ Designed around "what do I need to do right now":
 - **Batch personality.** Mentors name their batch and pick a colour; the owner sees friendly rivalry between batches on an owner-only view.
 - **Cohorts and intakes.** Tag students by joining month or exam year for reporting.
 - **Parent or guardian digest** (optional, off by default). A weekly summary by email.
-- **Referral link.** Students earn points when a referred friend enrols.
+- **Referral leads.** Students share a link; a referred friend lands in their mentor's **Add students** screen as a pre-filled row, and the referrer earns points once the friend is enrolled.
 - **Rest-day calendar.** Mark holidays once and streaks respect them across all batches.
 - **Mentor hand-over.** When a mentor leaves, reassign the whole batch to another mentor in one action, preserving history.
 
@@ -218,8 +228,9 @@ Designed around "what do I need to do right now":
 
 The existing app already has Next.js, Supabase, AI quiz generation, results with weak-topic analysis, flashcards and a leaderboard. The plan is to extend it rather than start over.
 
-- **Auth.** Replace the hard-coded teacher password and name-only student entry with Supabase Auth. Students use email OTP; mentors and the owner use email + password. A `profiles` table holds role, Student ID and batch.
-- **Data model additions.** `batches`, `profiles`, `tasks`, `task_submissions`, `uploads`, `streaks`, `points_ledger`, `badges`, `announcements`. The existing `quizzes`, `questions` and `attempts` tables become the in-app test engine behind a task.
+- **Auth.** Replace the hard-coded teacher password and name-only student entry with Supabase Auth. Students use email OTP; mentors and the owner use email + password. A `profiles` table holds role, Student ID, phone and batch. Enrolment creates the student's auth user server-side from the mentor's sheet, so students never register themselves.
+- **Data model additions.** `batches`, `profiles`, `enrolment_imports`, `waiting_list`, `tasks`, `task_submissions`, `uploads`, `streaks`, `points_ledger`, `badges`, `announcements`.
+- **Excel import.** Parse `.xlsx` and `.csv` on the server with SheetJS, validate every row, then enrol in a single transaction so a half-imported sheet can never happen. The original file and per-row result are stored on `enrolment_imports`. The existing `quizzes`, `questions` and `attempts` tables become the in-app test engine behind a task.
 - **Isolation.** Row-level security policies keyed on `batch_id`. API routes stop using the service-role key for reads.
 - **Uploads.** A private Supabase Storage bucket with signed URLs, and client-side image compression before upload.
 - **Scheduling.** A nightly job (Supabase pg_cron or a Netlify scheduled function) at 00:05 IST closes the day, computes streaks and awards points. A second job sends reminders.
@@ -233,7 +244,7 @@ The existing app already has Next.js, Supabase, AI quiz generation, results with
 
 | Phase | Scope | Outcome |
 |---|---|---|
-| **1. Foundation** (2 to 3 weeks) | Auth for all three roles, Student ID by email, auto-assignment, batch isolation, daily task (in-app + manual), proof upload, mentor tick, streak, basic points, batch leaderboard | A batch can run its daily loop end to end |
+| **1. Foundation** (2 to 3 weeks) | Auth for all three roles, mentor Excel upload with validation preview, Student ID by email, 50-seat limit with waiting list, batch isolation, daily task (in-app + manual), proof upload, mentor tick, streak, basic points, batch leaderboard | A batch can run its daily loop end to end |
 | **2. Insight** (2 weeks) | Full analysis views, reminders, task templates and weekly planner, mentor heatmap, owner overview and mentor scorecard, exports | Mentors get faster; the owner gets visibility |
 | **3. Delight** (ongoing) | Badges, levels, rewards catalogue, AI verification assist, doubt threads, weekly report cards, Hindi UI, parent digest | Retention and word of mouth |
 
@@ -247,4 +258,5 @@ The existing app already has Next.js, Supabase, AI quiz generation, results with
 4. When a mentor leaves, does the batch go to one replacement mentor or get redistributed?
 5. Can a student ask to change mentor, and who approves?
 6. Which reward types should exist in the catalogue at launch?
-7. Enrolment: owner-only, public sign-up link, or both?
+7. Over-capacity: when a mentor's sheet has more students than seats left, should the extras wait for the owner to place them (recommended) or be rejected outright?
+8. Welcome message: email only, or email plus WhatsApp to the phone number from the sheet?
