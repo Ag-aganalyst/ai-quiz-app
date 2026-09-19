@@ -13,7 +13,7 @@ const btnVariants = {
 };
 const btnSizes = { sm: 'px-3 py-1.5 text-sm rounded-lg', md: 'px-4 py-2.5 text-sm rounded-xl', lg: 'px-6 py-3.5 text-base rounded-2xl' };
 
-export function Button({ href, variant = 'primary', size = 'md', className = '', children, ...props }) {
+export function Button({ href, variant = 'primary', size = 'md', type = 'button', className = '', children, ...props }) {
   const cls = `inline-flex items-center justify-center gap-2 font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${btnVariants[variant]} ${btnSizes[size]} ${className}`;
   if (href) {
     return (
@@ -23,7 +23,7 @@ export function Button({ href, variant = 'primary', size = 'md', className = '',
     );
   }
   return (
-    <button type="button" className={cls} {...props}>
+    <button type={type} className={cls} {...props}>
       {children}
     </button>
   );

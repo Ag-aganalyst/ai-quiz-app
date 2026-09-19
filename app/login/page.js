@@ -89,7 +89,7 @@ function LoginInner() {
               <Field label="Student ID" hint="It was emailed to you by your mentor. Example: BM-26-0143">
                 <input className="input font-display tracking-widest uppercase" placeholder="BM-26-____" value={studentId} onChange={(e) => setStudentId(e.target.value.toUpperCase())} autoFocus />
               </Field>
-              <Button size="lg" className="w-full" disabled={busy}>Send code to my email</Button>
+              <Button type="submit" size="lg" className="w-full" disabled={busy}>Send code to my email</Button>
               <p className="text-xs text-ink-3 text-center">No password. Ever.</p>
             </div>
           )}
@@ -101,7 +101,7 @@ function LoginInner() {
               <Field label="6-digit code">
                 <input className="input font-display text-2xl tracking-[0.6em] text-center" inputMode="numeric" maxLength={6} placeholder="••••••" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} autoFocus />
               </Field>
-              <Button size="lg" className="w-full" disabled={busy}>{busy ? 'Opening your day…' : 'Log in'}</Button>
+              <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? 'Opening your day…' : 'Log in'}</Button>
               <div className="flex justify-between text-xs text-ink-3">
                 <button type="button" className="hover:text-brand" onClick={() => setStep(1)}>Wrong ID?</button>
                 <button type="button" className="hover:text-brand">Resend code</button>
@@ -117,7 +117,7 @@ function LoginInner() {
               <Field label="Password">
                 <input className="input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
               </Field>
-              <Button size="lg" className="w-full" disabled={busy}>{busy ? 'Opening your batch…' : `Open ${labels.mentor.toLowerCase()} dashboard`}</Button>
+              <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? 'Opening your batch…' : `Open ${labels.mentor.toLowerCase()} dashboard`}</Button>
               <p className="text-xs text-ink-3 text-center">Forgot it? Use the email code instead.</p>
             </div>
           )}
@@ -130,7 +130,7 @@ function LoginInner() {
               <Field label="Password">
                 <input className="input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
               </Field>
-              <Button size="lg" variant="dark" className="w-full" disabled={busy}>Continue</Button>
+              <Button type="submit" size="lg" variant="dark" className="w-full" disabled={busy}>Continue</Button>
               <p className="text-xs text-ink-3 text-center">The {labels.admin.toLowerCase()} account always asks for a second code.</p>
             </div>
           )}
@@ -139,7 +139,7 @@ function LoginInner() {
               <Field label="Second factor code" hint="Sent to your email">
                 <input className="input font-display text-2xl tracking-[0.6em] text-center" inputMode="numeric" maxLength={6} placeholder="••••••" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} autoFocus />
               </Field>
-              <Button size="lg" variant="dark" className="w-full" disabled={busy}>{busy ? 'Opening console…' : `Open ${labels.admin.toLowerCase()} console`}</Button>
+              <Button type="submit" size="lg" variant="dark" className="w-full" disabled={busy}>{busy ? 'Opening console…' : `Open ${labels.admin.toLowerCase()} console`}</Button>
             </div>
           )}
         </form>

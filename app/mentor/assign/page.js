@@ -108,7 +108,7 @@ export default function AssignPage() {
             </ul>
             <p className="text-[11px] text-ink-3 mt-2">Values are set by the {labels.admin.toLowerCase()} in Customise.</p>
           </Card>
-          <Button size="lg" className="w-full">Publish to 50 students</Button>
+          <Button type="submit" size="lg" className="w-full">Publish to 50 students</Button>
           <Button size="lg" variant="secondary" className="w-full" type="button" onClick={() => setToast('Saved as a template.')}>Save as template</Button>
         </div>
       </form>
