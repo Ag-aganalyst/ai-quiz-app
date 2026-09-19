@@ -260,3 +260,80 @@ The existing app already has Next.js, Supabase, AI quiz generation, results with
 6. Which reward types should exist in the catalogue at launch?
 7. Over-capacity: when a mentor's sheet has more students than seats left, should the extras wait for the owner to place them (recommended) or be rejected outright?
 8. Welcome message: email only, or email plus WhatsApp to the phone number from the sheet?
+
+---
+
+## Appendix A. 50 product inputs
+
+Suggestions and considerations that go beyond the core spec, grouped by area. Each is small enough to accept or reject on its own.
+
+### Onboarding and login
+
+1. **Readable Student IDs.** Use a format like `BM-26-0143` and never show letters that look like digits, so the ID is easy to say aloud and type on a phone.
+2. **Phone as a second login key.** Let students log in with Student ID or registered phone. OTP goes by email first; SMS is a paid fallback the owner can switch on.
+3. **Trusted devices.** Remember a device for 30 days so students rarely need an OTP after the first login.
+4. **Bounce tracking in the roster.** If a welcome email bounces, the mentor sees a red flag on that student and can fix the address and resend.
+5. **Self-service profile edits.** Students can fix their own name spelling and photo. Only the mentor can change phone or email.
+6. **Mentor introduction screen.** The first screen after login shows the mentor's photo, a 30-second intro video and the batch rules.
+7. **Guarded Excel template.** Lock the header row, add phone and email validation inside the sheet, and include one example row so uploads fail less often.
+8. **Roster export.** The mentor can download their batch with status, streak and points for offline use or a parent call.
+
+### Daily task
+
+9. **Publish-by time for mentors.** Tasks must be published by a set time, for example 9 AM. If not, the owner gets an alert and students see a friendly "today's task is on its way".
+10. **Tomorrow's task preview.** At 9 PM the title and expected duration of tomorrow's task appear, so students can plan their time.
+11. **Duration estimate on every task.** The mentor sets expected minutes; the student sees it before starting.
+12. **Two-part tasks.** One task can have two parts, such as read then test. Both must be done for the day to count.
+13. **Late window with reduced credit.** Accept submissions until 6 AM the next day for half points and no streak credit, so students still do the work.
+14. **Autosave during tests.** A dropped connection should never lose answers. Resume exactly where the student left off.
+15. **Offline paper.** Cache the manual test PDF on the device so it opens without network.
+
+### Tests and analysis
+
+16. **Per-question timing.** Record time spent on each question and show it in the review, for example "3 minutes on Q7, and wrong".
+17. **Negative marking option.** Mirror real exam patterns such as minus one third per wrong answer, switchable per test.
+18. **Weakness-weighted next test.** Give the AI generator each student's weak topics so tomorrow's in-app test leans toward them.
+19. **"Explain in class" list.** After each test the mentor gets the three questions most students missed, ready for the next session.
+20. **Personal trend, not just rank.** A 30-day line of the student's own scores, so improvement is visible even when rank is not.
+21. **Answer key release timing.** For manual tests, release the key only after the deadline so early finishers cannot share it.
+22. **Basic anti-cheating.** Shuffle question and option order per student, and show the mentor a tab-switch count for in-app tests.
+23. **Explain it differently.** A per-question button that asks the AI for a second explanation, capped at a few uses per day.
+24. **Mistake notebook.** Every wrong answer is collected into a personal revision list, and a weekly "re-attempt your mistakes" task is generated from it.
+
+### Uploads and verification
+
+25. **Capture guidance.** A frame guide, auto-crop, brightness check and a page-count reminder before the photo is submitted.
+26. **Size and retention policy.** Compress each page to under 500 KB and archive uploads after 90 days to keep storage costs flat.
+27. **Progressive multi-page upload.** Save page 1 of 3 as it goes, so a bad network never forces a full retry.
+28. **Verification SLA.** The mentor sees a timer on pending uploads; the owner sees average turnaround and gets an alert past 24 hours.
+29. **Feedback chips.** One-tap comments such as "Good work", "Show steps", "Redo Q3", with optional free text.
+30. **Random quality audit.** The owner can sample five verified uploads per mentor per week to check marking quality.
+31. **Student self-marking.** For manual tests the student enters their own marks from the key, and the mentor confirms or corrects. Verification becomes a check, not data entry.
+
+### Streaks and points
+
+32. **Streak heatmap for mentors.** A broken streak highlights the student and suggests a personal message.
+33. **Comeback task.** After a break, completing a special task within 48 hours restores half the streak, so students return instead of giving up.
+34. **Seasons.** Quarterly seasons with a hall of fame and a fresh leaderboard, so new students can still compete.
+35. **Teams within a batch.** Five teams of ten with a weekly team completion rate. Peer support, not just individual pressure.
+36. **Monthly certificate.** An auto-generated PDF with the owner's signature and logo for streak and rank achievements.
+37. **Points ledger.** A screen listing every point earned and why. Transparency removes disputes.
+38. **Anti-gaming rules.** Points only on the first attempt, practice retakes earn nothing, and upload points wait for the mentor's tick.
+
+### Mentor experience
+
+39. **8 AM digest.** Yesterday's completion rate, pending verifications and at-risk students, by email or WhatsApp.
+40. **One-tap personal nudge.** A pre-written message to a student from the heatmap, opened as a WhatsApp deep link.
+41. **Private notes per student.** Visible to the owner, invaluable during a mentor hand-over.
+42. **Drag-and-drop task calendar.** Plan a month at a glance and let holidays from the owner's calendar block days automatically.
+43. **Tagged question bank.** Every question carries topic, difficulty and source so it can be reused across days and shared into the owner's library.
+
+### Owner and operations
+
+44. **Mentor onboarding checklist.** Profile, first sheet upload, first task, first verification. The owner sees who is stuck at which step.
+45. **View as.** The owner can open the app exactly as a chosen student or mentor sees it, read-only, for support calls.
+46. **Alert rules.** Batch completion below 60 percent two days running, no task by 10 AM, or a verification backlog above 30, each notifies the owner.
+47. **Data rights.** Consent captured at first login, full export anytime, and a delete-my-data request path.
+48. **AI cost control.** Daily generation quotas per mentor, caching of generated tests, and an AI spend view for the owner.
+49. **Teaching Assistant role.** Can verify uploads but not assign tasks. This is how one mentor scales beyond 50 later without breaking the model.
+50. **Full branding.** Logo, colours, a custom domain such as app.brainymedia.in and a branded email sender, so the product feels like Brainy Media and not a generic tool.
