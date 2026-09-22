@@ -2,10 +2,13 @@
 import { useEffect, useState } from 'react';
 import AppShell from '@/components/shell/AppShell';
 import Sparkline from '@/components/viz/Sparkline';
+import ChallengeGrid from '@/components/viz/ChallengeGrid';
+import { StarPerformers, TieBreakNote } from '@/components/rankings/Rankings';
 import { Avatar, Button, Card, Pill, ProgressRing, SectionTitle, StreakFlame } from '@/components/ui';
 import { useSettings } from '@/lib/settings-store';
+import { useMentorProfile } from '@/lib/mentor-profile-store';
 import { levelFor } from '@/lib/brand-defaults';
-import { LEADERBOARD, MENTOR, STUDENT_ME, TODAY_TASK } from '@/lib/mock-data';
+import { CHALLENGE_PLAN, LEADERBOARD, MENTOR, STAR_PERFORMERS, STUDENT_ME, TASK_TYPES, dateOfDay, fmtDate } from '@/lib/mock-data';
 
 function useCountdown(deadline) {
   const [left, setLeft] = useState(null);
@@ -28,7 +31,8 @@ function useCountdown(deadline) {
 }
 
 export default function StudentHome() {
-  const { labels, schedule, levels, points: P, streak: S } = useSettings();
+  const { labels, schedule, levels, points: P, streak: S, challenge } = useSettings();
+  const mentorProfile = useMentorProfile();
   const me = STUDENT_ME;
   const left = useCountdown(schedule.deadline);
   const { current, next } = levelFor(me.points, levels);
@@ -38,13 +42,15 @@ export default function StudentHome() {
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const taskPotential = P.submitOnTime + P.scoreBonusMax + P.uploadProof + P.verified;
+  const task = CHALLENGE_PLAN[me.day - 1];
+  const tomorrow = CHALLENGE_PLAN[me.day];
 
   return (
     <AppShell role="student" user={{ name: me.name, sub: me.id }}>
       <div className="flex flex-wrap items-end justify-between gap-3 mb-5 rise">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-brand-deep">{greet}, {me.name.split(' ')[0]} 👋</h1>
-          <p className="text-sm text-ink-2">Your {labels.mentor.toLowerCase()} <b className="text-ink">{MENTOR.name}</b> · {MENTOR.batch} · {labels.student} ID <span className="font-mono">{me.id}</span></p>
+          <p className="text-sm text-ink-2">Day <b className="text-ink">{me.day}</b> of {challenge.days} · {labels.mentor} <b className="text-ink">{MENTOR.name}</b> · {MENTOR.batch} · ID <span className="font-mono">{me.id}</span></p>
         </div>
         <Pill tone="accent" icon="🏅">{current.name}</Pill>
       </div>
@@ -55,7 +61,7 @@ export default function StudentHome() {
           <div className="flex-1">
             <div className="text-xs font-semibold uppercase tracking-wide text-ink-3">{labels.streak}</div>
             <div className="font-display text-4xl font-extrabold text-brand-deep leading-none">{me.streak} <span className="text-lg font-bold text-ink-2">days</span></div>
-            <div className="text-xs text-ink-2 mt-1.5">{nextMilestone - me.streak} more to the {nextMilestone}-day milestone</div>
+            <div className="text-xs text-ink-2 mt-1.5">{nextMilestone - me.streak} more to the {nextMilestone}-day milestone · Sundays count</div>
             <div className="mt-2 flex items-center gap-2 text-xs">
               <Pill tone="brand" icon="🧊">{me.freezes} freeze{me.freezes === 1 ? '' : 's'} banked</Pill>
               <span className="text-ink-3">best {me.bestStreak}</span>
@@ -86,7 +92,7 @@ export default function StudentHome() {
           <div className="text-xs text-white/80 mt-1.5">Ranks below 10 show as a band, so you race yourself first.</div>
           <div className="mt-3 flex items-center gap-3">
             <Sparkline values={me.weekly} width={120} height={36} color="#fff" accent="var(--accent)" />
-            <span className="text-sm"><b>{me.weekly[me.weekly.length - 1]}%</b> <span className="text-white/70">last score</span></span>
+            <span className="text-sm"><b>{me.weekly[me.weekly.length - 1]}%</b> <span className="text-white/70">last test · avg {me.avgScore}%</span></span>
           </div>
         </Card>
       </div>
@@ -96,14 +102,14 @@ export default function StudentHome() {
         <div className="p-5 sm:p-6 grid md:grid-cols-[1fr_auto] gap-5 items-center relative">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <Pill tone="accent" icon="🎯">Today&apos;s {labels.task.toLowerCase()}</Pill>
-              <Pill tone="neutral">{TODAY_TASK.subject}</Pill>
-              <Pill tone="brand">{TODAY_TASK.typeLabel}</Pill>
+              <Pill tone="accent" icon="🎯">Day {me.day} · {fmtDate(dateOfDay(me.joined, me.day))}</Pill>
+              <Pill tone="neutral">{task.subject}</Pill>
+              <Pill tone="brand" icon={TASK_TYPES[task.type].icon}>{TASK_TYPES[task.type].label}</Pill>
             </div>
-            <h2 className="mt-3 font-display text-2xl font-bold text-brand-deep">{TODAY_TASK.title}</h2>
-            <p className="text-sm text-ink-2 mt-1 max-w-2xl">{TODAY_TASK.description}</p>
+            <h2 className="mt-3 font-display text-2xl font-bold text-brand-deep">{task.title}</h2>
+            <p className="text-sm text-ink-2 mt-1 max-w-2xl">20 previous-year style MCQs on nerve impulse conduction, synaptic transmission and the reflex arc. Solve on paper, then upload a clear photo of every page.</p>
             <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-2">
-              <li>⏱ {TODAY_TASK.durationMin} min</li>
+              <li>⏱ {task.durationMin} min</li>
               <li>🏅 up to <b className="text-accent-ink">{taskPotential} {labels.points}</b></li>
               <li>🕚 closes {schedule.deadline}</li>
             </ul>
@@ -116,15 +122,26 @@ export default function StudentHome() {
             <Button href="/student/task" size="lg" className="mt-3 w-full md:w-auto">Start now →</Button>
           </div>
         </div>
-        <div className="border-t border-line bg-page px-5 sm:px-6 py-2.5 text-xs text-ink-2 flex flex-wrap gap-x-6 gap-y-1">
-          <span>Step 1 · Test</span><span>Step 2 · Analysis</span><span>Step 3 · Upload proof</span><span>Step 4 · {labels.mentor} tick</span>
+        <div className="border-t border-line bg-page px-5 sm:px-6 py-2.5 text-xs text-ink-2 flex flex-wrap items-center justify-between gap-x-6 gap-y-1">
+          <span className="flex flex-wrap gap-x-6"><span>Step 1 · Test</span><span>Step 2 · Analysis</span><span>Step 3 · Upload proof</span><span>Step 4 · {labels.mentor} tick</span></span>
+          {tomorrow && <span>Tomorrow, Day {tomorrow.day}: <b className="text-ink">{tomorrow.title}</b></span>}
         </div>
       </Card>
 
-      <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-4 mt-6 rise-4">
+      <Card className="mt-4 rise-4">
+        <SectionTitle title={`Your ${challenge.days}-day ${labels.challenge.toLowerCase()}`} subtitle={`Day 1 was ${fmtDate(me.joined)}. Sundays count. Every 7th day is a lighter revision day.`} action={<Pill tone="brand">Day {me.day} of {challenge.days}</Pill>} />
+        <ChallengeGrid total={challenge.days} day={me.day} missedDays={me.missedDays} revisionEvery={challenge.revisionEvery} milestones={milestones} />
+      </Card>
+
+      <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-4 mt-4">
         <div className="space-y-4">
           <Card>
-            <SectionTitle title="Your week" subtitle="Scores on the last seven tasks" />
+            <SectionTitle title="Star performers" subtitle="Top 3 across every batch, with their mentors" />
+            <StarPerformers stars={STAR_PERFORMERS} compact />
+            <TieBreakNote />
+          </Card>
+          <Card>
+            <SectionTitle title="Your week" subtitle="Scores on the last seven tests" />
             <div className="flex items-center gap-5">
               <Sparkline values={me.weekly} width={260} height={64} />
               <div className="text-sm">
@@ -162,13 +179,13 @@ export default function StudentHome() {
 
         <div className="space-y-4">
           <Card id="leaderboard">
-            <SectionTitle title={`${MENTOR.batch} leaderboard`} subtitle="Weekly · only your batch, always" />
+            <SectionTitle title={`${MENTOR.batch} leaderboard`} subtitle="Weekly · your batch's top 10" />
             <ol className="space-y-1.5">
               {LEADERBOARD.map((r) => (
-                <li key={r.rank} className={`flex items-center gap-3 rounded-xl px-3 py-2 ${r.rank <= 3 ? 'bg-accent-soft' : 'bg-page'}`}>
+                <li key={r.rank} className={`flex items-center gap-3 rounded-xl px-3 py-2 ${r.rank <= 3 ? 'bg-accent-soft' : 'bg-page'} ${r.id === me.id ? 'ring-brand' : ''}`}>
                   <span className={`w-6 text-center font-display font-extrabold ${r.rank <= 3 ? 'text-accent-ink' : 'text-ink-3'}`}>{r.rank}</span>
                   <Avatar name={r.name} size="sm" />
-                  <span className="flex-1 text-sm font-semibold text-ink truncate">{r.name}</span>
+                  <span className="flex-1 text-sm font-semibold text-ink truncate">{r.name}{r.id === me.id ? ' (you)' : ''}</span>
                   <span className="text-xs text-ink-3">🔥 {r.streak}</span>
                   <span className="text-sm font-bold text-brand-deep tabular">{r.points.toLocaleString('en-IN')}</span>
                 </li>
@@ -179,10 +196,10 @@ export default function StudentHome() {
             </div>
           </Card>
           <Card className="flex items-center gap-4">
-            <Avatar name={MENTOR.name} size="lg" />
+            <Avatar name={MENTOR.name} src={mentorProfile.photo} size="lg" />
             <div className="flex-1">
               <div className="font-display font-bold text-brand-deep">{MENTOR.name}</div>
-              <div className="text-xs text-ink-2">Your {labels.mentor.toLowerCase()} · verifies within ~6 hours · 🔥 {MENTOR.streak}-day mentor streak</div>
+              <div className="text-xs text-ink-2">Your {labels.mentor.toLowerCase()} · {MENTOR.subject} · verifies within ~6 hours · 🔥 {MENTOR.streak}-day mentor streak</div>
             </div>
             <Button variant="secondary" size="sm">Ask a doubt</Button>
           </Card>

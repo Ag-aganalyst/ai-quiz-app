@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import AppShell from '@/components/shell/AppShell';
 import { Button, Card, Pill, ProgressRing, Stepper, Toast } from '@/components/ui';
 import { useSettings } from '@/lib/settings-store';
-import { MENTOR, STUDENT_ME, TODAY_TASK } from '@/lib/mock-data';
+import { MENTOR, STUDENT_ME, TODAY_TASK, dateOfDay, fmtDate } from '@/lib/mock-data';
 
 const STAGES = ['Brief', 'Test', 'Analysis', 'Upload', 'Tick'];
 
@@ -38,7 +38,7 @@ export default function StudentTask() {
       <Toast message={toast} onDone={() => setToast('')} />
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-ink-3">Today&apos;s {labels.task.toLowerCase()} · {TODAY_TASK.subject}</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-ink-3">Day {STUDENT_ME.day} · {fmtDate(dateOfDay(STUDENT_ME.joined, STUDENT_ME.day))} · {TODAY_TASK.subject}</div>
           <h1 className="font-display text-2xl font-bold text-brand-deep">{TODAY_TASK.title}</h1>
         </div>
         <Stepper steps={STAGES} current={stage} />
@@ -185,7 +185,7 @@ export default function StudentTask() {
           <Card pad="p-8" className="text-center">
             <div className="mx-auto inline-flex h-20 w-20 items-center justify-center rounded-full bg-brand-soft text-4xl">⏳</div>
             <h2 className="mt-4 font-display text-2xl font-bold text-brand-deep">Done for today. Nice.</h2>
-            <p className="text-ink-2 mt-1">Your {labels.streak.toLowerCase()} is now <b className="text-accent-ink">{STUDENT_ME.streak + 1} days</b>. {MENTOR.name} usually ticks within 6 hours.</p>
+            <p className="text-ink-2 mt-1">Day {STUDENT_ME.day} done. Your {labels.streak.toLowerCase()} is now <b className="text-accent-ink">{STUDENT_ME.streak + 1} days</b>. {MENTOR.name} usually ticks within 6 hours.</p>
             <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
               <div className="rounded-xl bg-[#f3fbf3] border border-[#bfe6bf] p-3"><div className="text-[10px] uppercase font-semibold text-ink-3">Submitted</div><div className="font-bold text-[#006300]">+{earned.submit}</div></div>
               <div className="rounded-xl bg-[#f3fbf3] border border-[#bfe6bf] p-3"><div className="text-[10px] uppercase font-semibold text-ink-3">Score</div><div className="font-bold text-[#006300]">+{earned.score}</div></div>

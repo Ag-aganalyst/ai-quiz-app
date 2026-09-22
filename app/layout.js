@@ -6,9 +6,9 @@ const outfit = Outfit({ variable: '--font-outfit', subsets: ['latin'], weight: [
 const manrope = Manrope({ variable: '--font-manrope', subsets: ['latin'], weight: ['400', '500', '600', '700'] });
 
 export const metadata = {
-  title: 'Brainy Media',
-  description: 'Mentor-led daily practice: one task a day, instant analysis, streaks and points.',
-  icons: { icon: '/brand/bmn-logo.png' },
+  title: 'Brainy Medic',
+  description: 'Mentor-led 90-day practice challenge: one task a day, instant analysis, streaks and points.',
+  icons: { icon: '/brand/bnm-logo.png' },
 };
 
 export default function RootLayout({ children }) {

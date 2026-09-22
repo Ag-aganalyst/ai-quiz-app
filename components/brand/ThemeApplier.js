@@ -11,7 +11,7 @@ export default function ThemeApplier() {
     const vars = derivePalette(brand);
     Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
     root.style.setProperty('--radius', `${Number(brand.radius) || 18}px`);
-    document.title = brand.appName || 'Brainy Media';
+    document.title = brand.appName || 'Brainy Medic';
   }, [brand]);
   return null;
 }

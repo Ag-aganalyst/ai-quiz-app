@@ -1,15 +1,15 @@
-# Brainy Media — Mentor-Led Daily Practice Platform
+# Brainy Medic — Mentor-Led Daily Practice Platform
 
 **Product specification and customisation ideas**
-Version 0.3 · September 2026 · Draft for owner review
-Change in 0.3: design system, creative direction and the admin customisation matrix (section 14) added alongside the UI prototype.
+Version 0.4 · September 2026 · Draft for admin review
+Change in 0.4: renamed to Brainy Medic (BNM), Owner becomes Admin, a Parent Portal, the 90-day challenge on each student's own Day N with Sundays counting, admin-authored tasks with mentors verifying only, mentor reports and profiles, manual add for mentors and students, mentor photos, and rankings across roles (section 15).
 Change in 0.2: students are enrolled by their mentor from an Excel sheet, not by the owner.
 
 ---
 
 ## 1. Vision
 
-Brainy Media is a single-educator learning platform where every student belongs to one mentor and one batch. Each day the mentor assigns one task. The student completes it, sees how they compare with the rest of their batch, uploads proof if the work was done on paper, and the mentor ticks it off. Doing this every day builds a streak, and every step earns points.
+Brainy Medic is a single-educator learning platform where every student belongs to one mentor and one batch. Each day the mentor assigns one task. The student completes it, sees how they compare with the rest of their batch, uploads proof if the work was done on paper, and the mentor ticks it off. Doing this every day builds a streak, and every step earns points.
 
 The product's job is to make that daily loop **effortless for students, fast for mentors, and visible for the owner**.
 
@@ -19,7 +19,7 @@ The product's job is to make that daily loop **effortless for students, fast for
 
 | Role | Who | What they see |
 |---|---|---|
-| **Owner (Admin)** | The educator who runs Brainy Media | Everything: all mentors, batches, students, settings and reports |
+| **Owner (Admin)** | The educator who runs Brainy Medic | Everything: all mentors, batches, students, settings and reports |
 | **Mentor** | A teacher responsible for one batch | Only their own batch of up to 50 students |
 | **Student** | A learner enrolled by their mentor from an Excel sheet | Only their own mentor, their own batch, and their own data |
 
@@ -39,7 +39,7 @@ Students do not sign themselves up. Their mentor enrols them by uploading an Exc
 
 1. The mentor opens **Add students** in their dashboard and downloads the Excel template. Columns: **Name, Phone, Email**. Optional columns: exam target, city.
 2. The mentor fills the sheet and uploads it (`.xlsx` or `.csv`). A quick **Add one student** form covers the odd single addition.
-3. Before anything is saved, every row is validated: required fields present, valid email, 10-digit phone, no duplicates within the sheet, no student already enrolled anywhere in Brainy Media (matched on email or phone), and seats remaining in the batch.
+3. Before anything is saved, every row is validated: required fields present, valid email, 10-digit phone, no duplicates within the sheet, no student already enrolled anywhere in Brainy Medic (matched on email or phone), and seats remaining in the batch.
 4. A preview shows each row as **ready**, **needs a fix** (with the reason), or **will be skipped**. The mentor corrects rows inline or re-uploads, then confirms.
 5. On confirm, each enrolled student gets a unique Student ID, for example `BM-2026-0143`, is placed in the mentor's batch, and receives a welcome email containing their Student ID, their mentor's name and a one-tap login link. An optional WhatsApp copy of the same message goes to the phone number.
 6. Login is passwordless: enter the Student ID, receive a 6-digit code by email, enter the code. There are no passwords to forget and no reset flows to support. An optional "set a password" can be added later for students who prefer it.
@@ -268,7 +268,7 @@ The existing app already has Next.js, Supabase, AI quiz generation, results with
 
 ### Brand and colour
 
-The theme is taken directly from the BMN logo: a teal gradient for the wordmark and a gold caduceus.
+The theme is taken directly from the BNM logo: a teal gradient for the wordmark and a gold caduceus.
 
 | Token | Value | Used for |
 |---|---|---|
@@ -307,6 +307,39 @@ Settings export and import as JSON, and reset to defaults in one click. In the p
 ### Prototype scope
 
 The UI prototype on the `claude/brainy-media-webapp-blgn1o` branch covers the landing page, role login (Student ID + email code, mentor password, owner with second factor), the student home and full daily task flow (warm-up test, analysis, upload, waiting for tick), the mentor dashboard, verification inbox, assign task and Excel enrolment screens, and the owner overview and customisation console. All data is sample data; no backend calls are made yet.
+
+---
+
+## 15. Version 0.4 changes (approved 22 Sep 2026)
+
+### Naming
+- The product is **Brainy Medic**, monogram **BNM**, with the caduceus logo on a white chip everywhere.
+- The owner role is called **Admin** in every screen and message. The first admin account carries a protected owner flag so a later admin cannot remove it.
+
+### Parent Portal
+- **Login.** The mentor's sheet carries Parent name and Parent phone. On enrolment the parent receives the Student ID and a link by WhatsApp or SMS. The parent logs in with the Student ID plus a 6-digit code sent only to the parent's phone, never to the student. A student can also invite a parent from their app if the sheet had no number. One parent phone can hold several children, with a switcher after login.
+- **What a parent sees, read-only.** Child's name and Student ID, mentor's name and photo, Day N of 90 with the day grid, today's task status, streak, tasks completed, every test with its name, date, marks and percentage, and the running average. Every number shows when it was last updated. Rank is hidden by default and shows as "On track" or "Needs attention" instead. A "Request a call" button reaches the mentor. A Sunday WhatsApp summary is on by default.
+
+### The 90-day challenge
+- Every student runs **Day 1 to Day 90 from their own joining date**. Sundays count. Every 7th day is a lighter revision day.
+- **Tasks are tied to Day N, not to a calendar date.** The admin fills the 90-day plan once and can edit any future day; the daily admin job is to check tomorrow's tasks, attach papers and adjust. Late joiners start from Day 1 automatically.
+- Tasks show both the day number and the date, for example "Day 34 · Tue 22 Sep".
+- Freezes: one earned per 15 days, at most three banked. Milestones at 7, 21, 45 and 90 days. A missed day breaks the streak, not the challenge; a "Perfect 90" badge rewards zero misses and Day 90 issues a certificate.
+
+### Who does what
+- **Admin** assigns every task through the plan, adds mentors manually or by CSV, reads every mentor's report for the last 7, 15, 30 or 90 days or any custom range, opens every mentor's profile and journey, and every student's profile through their mentor.
+- **Mentor** verifies only. The inbox has two tabs, Daily tasks and Test analysis, in one place. A mentor sees today's tasks by day group, previews tomorrow, adds students by sheet or one at a time with parent contact, and uploads and changes their own photo.
+- **Student** sees Day N of 90 on a grid, the day's task with date, the batch top 10, and the top 3 star performers across all batches with their mentors' names.
+
+### Rankings
+- **Mentors** rank by **average points per active student**, with the total shown beside it, so a mentor with 30 students is not penalised against one with 50. Top 3 appear as gold, silver and bronze cards; ranks 4 to 10 in a table. Shown to admin and to mentors, who see their own row highlighted.
+- **Star performers.** The top 3 students across every batch, with mentor name and points, shown to admin, mentors and students.
+- Ties break on points, then streak, then average test %. The rule is printed under every leaderboard.
+
+### Enrolment and data
+- Mentor sheet columns: Name, Phone, Email, Parent name, Parent phone. The single-student form uses the same checks.
+- Admin add-mentor form: name, email, phone, subject, batch name. Invite goes by email and WhatsApp.
+- Confirmed test marks, not self-marked ones, feed the parent portal and the average.
 
 ---
 
@@ -383,4 +416,4 @@ Suggestions and considerations that go beyond the core spec, grouped by area. Ea
 47. **Data rights.** Consent captured at first login, full export anytime, and a delete-my-data request path.
 48. **AI cost control.** Daily generation quotas per mentor, caching of generated tests, and an AI spend view for the owner.
 49. **Teaching Assistant role.** Can verify uploads but not assign tasks. This is how one mentor scales beyond 50 later without breaking the model.
-50. **Full branding.** Logo, colours, a custom domain such as app.brainymedia.in and a branded email sender, so the product feels like Brainy Media and not a generic tool.
+50. **Full branding.** Logo, colours, a custom domain such as app.brainymedia.in and a branded email sender, so the product feels like Brainy Medic and not a generic tool.

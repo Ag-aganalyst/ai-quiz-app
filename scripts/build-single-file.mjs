@@ -1,4 +1,4 @@
-// Bundles the Brainy Media UI prototype into ONE self-contained HTML file (dist/brainy-media.html):
+// Bundles the Brainy Medic UI prototype into ONE self-contained HTML file (dist/brainy-medic.html):
 // React + the app code, the Tailwind CSS, the fonts and the logo are all inlined. Open it by double-clicking.
 import { build } from 'esbuild';
 import postcss from 'postcss';
@@ -17,7 +17,7 @@ const { css: appCss } = await postcss([tailwind({ base: root })]).process(fs.rea
 const fontCss = fs.readFileSync(rel('single-file/fonts.css'), 'utf8').replace(/url\(fonts\/([^)]+)\)/g, (m, file) => `url(${b64(`single-file/fonts/${file}`, 'font/woff2')})`);
 
 // 2. Logo, inlined so the default brand settings work without any server.
-const logo = b64('public/brand/bmn-logo.png', 'image/png');
+const logo = b64('public/brand/bnm-logo.png', 'image/png');
 
 // 3. App bundle: the real pages and components, with `next/link` and `next/navigation` swapped for hash-router shims.
 function resolveAlias(spec) {
@@ -58,8 +58,8 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brainy Media</title>
-<meta name="description" content="Brainy Media: mentor-led daily practice. Clickable UI prototype with sample data.">
+<title>Brainy Medic</title>
+<meta name="description" content="Brainy Medic: the mentor-led 90-day practice challenge. Clickable UI prototype with sample data.">
 <link rel="icon" href="${logo}">
 <style>${fontCss}\n${appCss}</style>
 </head>
@@ -70,13 +70,13 @@ const html = `<!doctype html>
 </html>
 `;
 // Same page as a fragment, for hosts that wrap the file in their own <html>/<head>/<body> (e.g. Claude artifacts).
-const fragment = `<title>Brainy Media</title>
+const fragment = `<title>Brainy Medic</title>
 <style>${fontCss}\n${appCss}</style>
 <div id="root"></div>
 <script>${js}</script>
 `;
 fs.mkdirSync(rel('dist'), { recursive: true });
-const outFile = rel('dist/brainy-media.html');
+const outFile = rel('dist/brainy-medic.html');
 fs.writeFileSync(outFile, html);
-fs.writeFileSync(rel('dist/brainy-media.artifact.html'), fragment);
+fs.writeFileSync(rel('dist/brainy-medic.artifact.html'), fragment);
 console.log(`Wrote ${path.relative(root, outFile)} (${(Buffer.byteLength(html) / 1024).toFixed(0)} KB; js ${(Buffer.byteLength(js) / 1024).toFixed(0)} KB, css ${(Buffer.byteLength(appCss) / 1024).toFixed(0)} KB, fonts ${(Buffer.byteLength(fontCss) / 1024).toFixed(0)} KB)`);

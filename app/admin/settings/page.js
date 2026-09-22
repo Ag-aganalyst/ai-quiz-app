@@ -18,7 +18,7 @@ const TABS = [
 ];
 
 const PRESETS = [
-  { name: 'BMN teal', primary: '#2a8d78', primaryDeep: '#0f3d34', accent: '#f5d020' },
+  { name: 'BNM teal', primary: '#2a8d78', primaryDeep: '#0f3d34', accent: '#f5d020' },
   { name: 'Ocean', primary: '#2a78d6', primaryDeep: '#0f2a4d', accent: '#ffb84d' },
   { name: 'Plum', primary: '#7c4dcc', primaryDeep: '#2c1a4d', accent: '#ffd166' },
   { name: 'Ember', primary: '#d9572b', primaryDeep: '#3d1a0f', accent: '#ffd23f' },
@@ -36,8 +36,8 @@ const POINT_ROWS = [
   ['perfectWeek', 'Perfect week'],
   ['milestone7', '7-day streak milestone'],
   ['milestone21', '21-day streak milestone'],
-  ['milestone50', '50-day streak milestone'],
-  ['milestone100', '100-day streak milestone'],
+  ['milestone45', '45-day streak milestone'],
+  ['milestone90', '90-day streak milestone'],
 ];
 
 function ColorRow({ label, value, onChange, hint }) {
@@ -97,7 +97,7 @@ function SettingsInner() {
   const sample = { name: 'Riya', app: s.brand.appName, id: 'BM-26-0143', mentor: 'Dr. Anjali Rao', link: 'https://app.brainymedia.in/l/abc', deadline: s.schedule.deadline, streak: 12, points: 28, pointsName: s.labels.points };
 
   return (
-    <AppShell role="admin" user={{ name: 'Owner', sub: s.brand.appName }}>
+    <AppShell role="admin" user={{ name: s.labels.admin, sub: s.brand.appName }}>
       <Toast message={toast} onDone={() => setToast('')} />
       <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
         <div>
@@ -147,7 +147,7 @@ function SettingsInner() {
                     ))}
                   </div>
                 </div>
-                <ColorRow label="Primary" hint="Buttons, links, progress. Taken from the BMN teal." value={s.brand.primary} onChange={(v) => set({ brand: { primary: v } })} />
+                <ColorRow label="Primary" hint="Buttons, links, progress. Taken from the BNM teal." value={s.brand.primary} onChange={(v) => set({ brand: { primary: v } })} />
                 <ColorRow label="Deep" hint="Headers and hero backgrounds." value={s.brand.primaryDeep} onChange={(v) => set({ brand: { primaryDeep: v } })} />
                 <ColorRow label="Accent" hint="Streak flame, highlights, points. The caduceus gold." value={s.brand.accent} onChange={(v) => set({ brand: { accent: v } })} />
                 <Field label={`Corner radius · ${s.brand.radius}px`}>
@@ -183,7 +183,7 @@ function SettingsInner() {
 
           {tab === 'labels' && (
             <Card className="space-y-4">
-              <p className="text-sm text-ink-2">Rename the words the product uses. Prefer &quot;Coach&quot; over &quot;Mentor&quot;? &quot;Squad&quot; over &quot;Batch&quot;? Change it once, it changes everywhere.</p>
+              <p className="text-sm text-ink-2">Rename the words the product uses. Prefer &quot;Coach&quot; over &quot;Mentor&quot;? &quot;Guardian&quot; over &quot;Parent&quot;? Change it once, it changes everywhere.</p>
               <div className="grid sm:grid-cols-2 gap-3">
                 {Object.entries(s.labels).map(([k, v]) => (
                   <Field key={k} label={`${k[0].toUpperCase()}${k.slice(1)}`} hint={`Default: ${DEFAULT_SETTINGS.labels[k]}`}>
@@ -225,6 +225,11 @@ function SettingsInner() {
 
           {tab === 'streak' && (
             <Card className="space-y-5">
+              <div className="grid sm:grid-cols-3 gap-3">
+                <Field label={`${s.labels.challenge} length (days)`} hint="Every student runs Day 1 to Day N from their joining date"><input className="input" type="number" min={7} max={365} value={s.challenge.days} onChange={(e) => set({ challenge: { days: Number(e.target.value) } })} /></Field>
+                <Field label="Revision day every (days)" hint="Lighter day, e.g. every 7th"><input className="input" type="number" min={0} value={s.challenge.revisionEvery} onChange={(e) => set({ challenge: { revisionEvery: Number(e.target.value) } })} /></Field>
+                <Field label="Max items per day"><input className="input" type="number" min={1} max={4} value={s.challenge.maxItemsPerDay} onChange={(e) => set({ challenge: { maxItemsPerDay: Number(e.target.value) } })} /></Field>
+              </div>
               <div>
                 <div className="text-sm font-semibold mb-2">A streak day counts on</div>
                 <div className="grid sm:grid-cols-2 gap-2">
@@ -265,7 +270,7 @@ function SettingsInner() {
                 <Field label={`Seats per ${s.labels.mentor.toLowerCase()}`}><input className="input" type="number" min={1} max={500} value={s.schedule.seatsPerMentor} onChange={(e) => set({ schedule: { seatsPerMentor: Number(e.target.value) } })} /></Field>
               </div>
               <div>
-                <div className="text-sm font-semibold mb-2">Rest days (streaks are safe, no task expected)</div>
+                <div className="text-sm font-semibold mb-2">Rest days (streaks are safe, no task expected). None by default: Sundays count in the {s.challenge.days}-day {s.labels.challenge.toLowerCase()}.</div>
                 <div className="flex flex-wrap gap-1.5">
                   {WEEKDAYS.map((d) => {
                     const on = s.schedule.restDays.includes(d);

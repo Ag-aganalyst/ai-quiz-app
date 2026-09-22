@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Brand tokens. Defaults match the BMN logo; the admin console overrides them at runtime. */
+/* Brand tokens. Defaults match the BNM logo; the admin console overrides them at runtime. */
 :root {
   --brand: #2a8d78;
   --brand-600: #257c69;

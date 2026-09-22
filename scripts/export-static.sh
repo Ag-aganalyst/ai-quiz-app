@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds a static, backend-free demo of the Brainy Media UI prototype into ./out.
+# Builds a static, backend-free demo of the Brainy Medic UI prototype into ./out.
 # The API routes and the Supabase-backed quiz page are set aside during the build
 # (they cannot be statically exported) and restored afterwards, even on failure.
 set -euo pipefail

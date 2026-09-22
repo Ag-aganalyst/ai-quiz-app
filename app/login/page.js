@@ -5,11 +5,13 @@ import Logo from '@/components/brand/Logo';
 import { Button, Field, Pill, StreakFlame } from '@/components/ui';
 import { useSettings } from '@/lib/settings-store';
 
+const ROLES = ['student', 'parent', 'mentor', 'admin'];
+
 function LoginInner() {
   const params = useSearchParams();
   const router = useRouter();
-  const { brand, labels } = useSettings();
-  const initial = ['student', 'mentor', 'admin'].includes(params.get('role')) ? params.get('role') : 'student';
+  const { brand, labels, challenge } = useSettings();
+  const initial = ROLES.includes(params.get('role')) ? params.get('role') : 'student';
   const [role, setRole] = useState(initial);
   const [step, setStep] = useState(1);
   const [studentId, setStudentId] = useState('');
@@ -20,6 +22,7 @@ function LoginInner() {
 
   const tabs = [
     { key: 'student', label: labels.student },
+    { key: 'parent', label: labels.parent },
     { key: 'mentor', label: labels.mentor },
     { key: 'admin', label: labels.admin },
   ];
@@ -31,9 +34,9 @@ function LoginInner() {
 
   function submit(e) {
     e.preventDefault();
-    if (role === 'student') {
+    if (role === 'student' || role === 'parent') {
       if (step === 1) return setStep(2);
-      return go('/student');
+      return go(role === 'student' ? '/student' : '/parent');
     }
     if (role === 'mentor') return go('/mentor');
     if (step === 1) return setStep(2);
@@ -46,6 +49,31 @@ function LoginInner() {
     setOtp('');
   }
 
+  const idStep = (
+    <div className="space-y-4">
+      <Field label="Student ID" hint={role === 'parent' ? 'The ID from the welcome message your child\'s mentor sent you. Example: BM-26-0143' : 'It was emailed to you by your mentor. Example: BM-26-0143'}>
+        <input className="input font-display tracking-widest uppercase" placeholder="BM-26-____" value={studentId} onChange={(e) => setStudentId(e.target.value.toUpperCase())} autoFocus />
+      </Field>
+      <Button type="submit" size="lg" className="w-full" disabled={busy}>{role === 'parent' ? "Send code to the parent's phone" : 'Send code to my email'}</Button>
+      <p className="text-xs text-ink-3 text-center">{role === 'parent' ? 'The code goes only to the parent number on file, never to the student.' : 'No password. Ever.'}</p>
+    </div>
+  );
+  const codeStep = (target, next) => (
+    <div className="space-y-4">
+      <div className="rounded-xl bg-brand-soft border border-brand-100 px-4 py-3 text-sm text-brand-700">
+        We sent a 6-digit code to {target} for <b>{studentId || 'BM-26-0143'}</b>. Codes expire in 10 minutes.
+      </div>
+      <Field label="6-digit code">
+        <input className="input font-display text-2xl tracking-[0.6em] text-center" inputMode="numeric" maxLength={6} placeholder="••••••" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} autoFocus />
+      </Field>
+      <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? 'Opening…' : next}</Button>
+      <div className="flex justify-between text-xs text-ink-3">
+        <button type="button" className="hover:text-brand" onClick={() => setStep(1)}>Wrong ID?</button>
+        <button type="button" className="hover:text-brand">Resend code</button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen grid lg:grid-cols-[1fr_1.1fr]">
       <aside className="bg-hero text-white p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden">
@@ -54,7 +82,7 @@ function LoginInner() {
           <div className="flex items-center gap-4">
             <StreakFlame size={72} />
             <div>
-              <div className="text-xs uppercase tracking-wide text-white/60 font-semibold">Riya, {labels.batch} A</div>
+              <div className="text-xs uppercase tracking-wide text-white/60 font-semibold">Riya · Day 34 of {challenge.days}</div>
               <div className="font-display text-3xl font-extrabold">12-day {labels.streak.toLowerCase()}</div>
             </div>
           </div>
@@ -64,9 +92,9 @@ function LoginInner() {
           <div className="mt-3 text-sm text-white/60">A {labels.student.toLowerCase()} at {brand.appName}</div>
         </div>
         <ul className="text-sm text-white/70 space-y-1.5">
-          <li>• {labels.student}s never set a password. A Student ID and a 6-digit code by email is all it takes.</li>
-          <li>• {labels.mentor}s enrol their {labels.batch.toLowerCase()} from one Excel sheet.</li>
-          <li>• The {labels.admin.toLowerCase()} can rename, recolour and re-rule everything.</li>
+          <li>• {labels.student}s and {labels.parent.toLowerCase()}s never set a password. A Student ID and a 6-digit code is all it takes.</li>
+          <li>• {labels.mentor}s enrol their {labels.batch.toLowerCase()} from one Excel sheet, or one student at a time.</li>
+          <li>• The {labels.admin.toLowerCase()} plans all {challenge.days} days and can rename, recolour and re-rule everything.</li>
         </ul>
       </aside>
 
@@ -76,7 +104,7 @@ function LoginInner() {
             <h1 className="font-display text-2xl font-bold text-brand-deep">Welcome back</h1>
             <Pill tone="neutral">Demo mode</Pill>
           </div>
-          <div className="grid grid-cols-3 gap-1 rounded-2xl bg-page p-1 border border-line mb-6" role="tablist">
+          <div className="grid grid-cols-4 gap-1 rounded-2xl bg-page p-1 border border-line mb-6" role="tablist">
             {tabs.map((t) => (
               <button key={t.key} type="button" role="tab" aria-selected={role === t.key} onClick={() => switchRole(t.key)} className={`rounded-xl py-2 text-sm font-semibold transition ${role === t.key ? 'bg-white text-brand-deep shadow-sm' : 'text-ink-2 hover:text-brand-deep'}`}>
                 {t.label}
@@ -84,35 +112,13 @@ function LoginInner() {
             ))}
           </div>
 
-          {role === 'student' && step === 1 && (
-            <div className="space-y-4">
-              <Field label="Student ID" hint="It was emailed to you by your mentor. Example: BM-26-0143">
-                <input className="input font-display tracking-widest uppercase" placeholder="BM-26-____" value={studentId} onChange={(e) => setStudentId(e.target.value.toUpperCase())} autoFocus />
-              </Field>
-              <Button type="submit" size="lg" className="w-full" disabled={busy}>Send code to my email</Button>
-              <p className="text-xs text-ink-3 text-center">No password. Ever.</p>
-            </div>
-          )}
-          {role === 'student' && step === 2 && (
-            <div className="space-y-4">
-              <div className="rounded-xl bg-brand-soft border border-brand-100 px-4 py-3 text-sm text-brand-700">
-                We sent a 6-digit code to the email on file for <b>{studentId || 'BM-26-0143'}</b>. Codes expire in 10 minutes.
-              </div>
-              <Field label="6-digit code">
-                <input className="input font-display text-2xl tracking-[0.6em] text-center" inputMode="numeric" maxLength={6} placeholder="••••••" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} autoFocus />
-              </Field>
-              <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? 'Opening your day…' : 'Log in'}</Button>
-              <div className="flex justify-between text-xs text-ink-3">
-                <button type="button" className="hover:text-brand" onClick={() => setStep(1)}>Wrong ID?</button>
-                <button type="button" className="hover:text-brand">Resend code</button>
-              </div>
-            </div>
-          )}
+          {role === 'student' && (step === 1 ? idStep : codeStep('the email on file', 'Log in'))}
+          {role === 'parent' && (step === 1 ? idStep : codeStep('the parent phone ending 1223', "Open my child's progress"))}
 
           {role === 'mentor' && (
             <div className="space-y-4">
               <Field label="Email">
-                <input className="input" type="email" placeholder="you@brainymedia.in" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
+                <input className="input" type="email" placeholder="you@brainymedic.in" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
               </Field>
               <Field label="Password">
                 <input className="input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -125,7 +131,7 @@ function LoginInner() {
           {role === 'admin' && step === 1 && (
             <div className="space-y-4">
               <Field label="Email">
-                <input className="input" type="email" placeholder="owner@brainymedia.in" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
+                <input className="input" type="email" placeholder="admin@brainymedic.in" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
               </Field>
               <Field label="Password">
                 <input className="input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />

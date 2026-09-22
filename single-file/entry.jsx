@@ -9,11 +9,17 @@ import Home from '@/app/page';
 import LoginPage from '@/app/login/page';
 import StudentHome from '@/app/student/page';
 import StudentTask from '@/app/student/task/page';
+import ParentHome from '@/app/parent/page';
 import MentorDashboard from '@/app/mentor/page';
 import VerifyPage from '@/app/mentor/verify/page';
-import AssignPage from '@/app/mentor/assign/page';
 import StudentsPage from '@/app/mentor/students/page';
+import MentorStudentPage from '@/app/mentor/student/page';
+import MentorProfilePage from '@/app/mentor/profile/page';
 import AdminOverview from '@/app/admin/page';
+import TaskPlanPage from '@/app/admin/tasks/page';
+import MentorsPage from '@/app/admin/mentors/page';
+import AdminMentorPage from '@/app/admin/mentor/page';
+import AdminStudentPage from '@/app/admin/student/page';
 import SettingsPage from '@/app/admin/settings/page';
 
 const ROUTES = {
@@ -21,11 +27,17 @@ const ROUTES = {
   '/login': LoginPage,
   '/student': StudentHome,
   '/student/task': StudentTask,
+  '/parent': ParentHome,
   '/mentor': MentorDashboard,
   '/mentor/verify': VerifyPage,
-  '/mentor/assign': AssignPage,
   '/mentor/students': StudentsPage,
+  '/mentor/student': MentorStudentPage,
+  '/mentor/profile': MentorProfilePage,
   '/admin': AdminOverview,
+  '/admin/tasks': TaskPlanPage,
+  '/admin/mentors': MentorsPage,
+  '/admin/mentor': AdminMentorPage,
+  '/admin/student': AdminStudentPage,
   '/admin/settings': SettingsPage,
 };
 

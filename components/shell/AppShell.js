@@ -9,16 +9,22 @@ const NAV = {
   student: [
     { href: '/student', label: 'Home', icon: '🏠' },
     { href: '/student/task', label: "Today's task", icon: '🎯' },
-    { href: '/student#leaderboard', label: 'Leaderboard', icon: '🏆' },
+    { href: '/student#leaderboard', label: 'Rankings', icon: '🏆' },
+  ],
+  parent: [
+    { href: '/parent', label: 'Home', icon: '🏠' },
+    { href: '/parent#tests', label: 'Tests', icon: '📝' },
   ],
   mentor: [
     { href: '/mentor', label: 'Dashboard', icon: '📊' },
     { href: '/mentor/verify', label: 'Verify', icon: '✅' },
-    { href: '/mentor/assign', label: 'Assign', icon: '📝' },
     { href: '/mentor/students', label: 'Students', icon: '👥' },
+    { href: '/mentor/profile', label: 'Profile', icon: '🪪' },
   ],
   admin: [
     { href: '/admin', label: 'Overview', icon: '🧭' },
+    { href: '/admin/tasks', label: 'Task plan', icon: '🗓' },
+    { href: '/admin/mentors', label: 'Mentors', icon: '🧑‍🏫' },
     { href: '/admin/settings', label: 'Customise', icon: '🎨' },
   ],
 };
@@ -27,7 +33,7 @@ export default function AppShell({ role = 'student', user, children }) {
   const pathname = usePathname();
   const { labels, brand } = useSettings();
   const nav = NAV[role] || [];
-  const roleLabel = role === 'admin' ? labels.admin : role === 'mentor' ? labels.mentor : labels.student;
+  const roleLabel = { admin: labels.admin, mentor: labels.mentor, parent: labels.parent, student: labels.student }[role];
   const isActive = (href) => pathname === href.split('#')[0];
 
   return (
@@ -51,7 +57,7 @@ export default function AppShell({ role = 'student', user, children }) {
               <div className="text-sm font-semibold">{user?.name}</div>
               <div className="text-[11px] text-white/70">{user?.sub}</div>
             </div>
-            <Avatar name={user?.name || roleLabel} />
+            <Avatar name={user?.name || roleLabel} src={user?.photo} />
             <Link href="/login" className="text-xs text-white/70 hover:text-white underline-offset-2 hover:underline" title="Switch role (demo)">
               Switch
             </Link>

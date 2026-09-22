@@ -1,12 +1,14 @@
 'use client';
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import AppShell from '@/components/shell/AppShell';
-import { Avatar, Button, Card, Pill, SectionTitle, Toast } from '@/components/ui';
+import { Avatar, Button, Card, Field, Pill, SectionTitle, Toast } from '@/components/ui';
 import { useSettings } from '@/lib/settings-store';
+import { useMentorProfile } from '@/lib/mentor-profile-store';
 import { MENTOR, STUDENTS } from '@/lib/mock-data';
 
 const DEMO_ROWS = [
-  ['Aarohi Deshmukh', '9811022334', 'aarohi.d@example.com'],
+  ['Aarohi Deshmukh', '9811022334', 'aarohi.d@example.com', 'Rajesh Deshmukh', '9711022334'],
   ['Mohit Bansal', '9822033445', 'mohit.b@example.com'],
   ['Zoya Ansari', '98330', 'zoya.a@example.com'],
   ['', '9844055667', 'noname@example.com'],
@@ -20,7 +22,7 @@ function validate(rows, existing, seatsLeft) {
   const seenEmail = new Set();
   const seenPhone = new Set();
   let placed = 0;
-  return rows.map(([name, phone, email]) => {
+  return rows.map(([name, phone, email, parentName = '', parentPhone = '']) => {
     const problems = [];
     if (!name?.trim()) problems.push('Name missing');
     if (!/^\d{10}$/.test(phone || '')) problems.push('Phone must be 10 digits');
@@ -39,14 +41,18 @@ function validate(rows, existing, seatsLeft) {
       placed += 1;
       if (placed > seatsLeft) state = 'waiting';
     }
-    return { name, phone, email, state, problems };
+    if (parentPhone && !/^\d{10}$/.test(parentPhone)) problems.push('Parent phone must be 10 digits');
+    return { name, phone, email, parentName, parentPhone, state, problems };
   });
 }
 
 export default function StudentsPage() {
   const { labels, schedule } = useSettings();
+  const profile = useMentorProfile();
   const [roster, setRoster] = useState(STUDENTS.map((s) => ({ ...s, batch: MENTOR.batch })));
   const [rows, setRows] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: '', phone: '', email: '', parentName: '', parentPhone: '' });
   const [q, setQ] = useState('');
   const [toast, setToast] = useState('');
   const seatsLeft = Math.max(0, schedule.seatsPerMentor - roster.length);
@@ -55,7 +61,7 @@ export default function StudentsPage() {
   const filtered = roster.filter((s) => `${s.name} ${s.id} ${s.email}`.toLowerCase().includes(q.toLowerCase()));
 
   function downloadTemplate() {
-    const csv = 'Name,Phone,Email\nExample Student,9876543210,example@email.com\n';
+    const csv = 'Name,Phone,Email,Parent name,Parent phone\nExample Student,9876543210,example@email.com,Example Parent,9876501234\n';
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     a.download = 'brainy-media-students-template.csv';
@@ -80,27 +86,56 @@ export default function StudentsPage() {
     const ready = preview.filter((r) => r.state === 'ready');
     const waiting = preview.filter((r) => r.state === 'waiting').length;
     const start = 151 + roster.length;
-    setRoster((r) => r.concat(ready.map((x, i) => ({ id: `BM-26-0${start + i}`, name: x.name, phone: x.phone, email: x.email, status: 'not_started', streak: 0, points: 0, activation: 'Invited', batch: MENTOR.batch }))));
+    setRoster((r) => r.concat(ready.map((x, i) => ({ id: `BM-26-0${start + i}`, name: x.name, phone: x.phone, email: x.email, parent: { name: x.parentName, phone: x.parentPhone }, status: 'not_started', streak: 0, points: 0, day: 1, activation: 'Invited', batch: MENTOR.batch }))));
     setRows(null);
     setToast(`${ready.length} enrolled and emailed their Student ID.${waiting ? ` ${waiting} sent to the ${labels.admin.toLowerCase()}'s waiting list.` : ''}`);
+  }
+
+  function addOne(e) {
+    e.preventDefault();
+    const [row] = validate([[form.name, form.phone, form.email, form.parentName, form.parentPhone]], existing, seatsLeft);
+    if (row.state !== 'ready') return setToast(row.problems[0] || (row.state === 'waiting' ? 'Batch is full. Added to the waiting list.' : 'Check the details.'));
+    setRoster((r) => r.concat([{ id: `BM-26-0${151 + r.length}`, name: row.name, phone: row.phone, email: row.email, parent: { name: row.parentName, phone: row.parentPhone }, status: 'not_started', streak: 0, points: 0, day: 1, activation: 'Invited', batch: MENTOR.batch }]));
+    setForm({ name: '', phone: '', email: '', parentName: '', parentPhone: '' });
+    setShowForm(false);
+    setToast(`${row.name} enrolled. Student ID emailed${row.parentPhone ? ', parent messaged on WhatsApp' : ''}. Day 1 starts today.`);
   }
 
   const tone = { ready: 'good', fix: 'warn', skip: 'critical', waiting: 'brand' };
   const label = { ready: 'Ready', fix: 'Needs a fix', skip: 'Will skip', waiting: 'Waiting list' };
 
   return (
-    <AppShell role="mentor" user={{ name: MENTOR.name, sub: MENTOR.batch }}>
+    <AppShell role="mentor" user={{ name: MENTOR.name, sub: MENTOR.batch, photo: profile.photo }}>
       <Toast message={toast} onDone={() => setToast('')} />
       <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-brand-deep">{labels.student}s</h1>
           <p className="text-sm text-ink-2">{roster.length} of {schedule.seatsPerMentor} seats filled · <b className={seatsLeft ? 'text-brand-700' : 'text-critical'}>{seatsLeft} left</b></p>
         </div>
-        <div className="w-64 h-2 rounded-full bg-brand-100 overflow-hidden"><div className={`h-full rounded-full ${seatsLeft ? 'bg-brand' : 'bg-critical'}`} style={{ width: `${Math.min(100, (roster.length / schedule.seatsPerMentor) * 100)}%` }} /></div>
+        <div className="flex items-center gap-3">
+          <div className="w-48 h-2 rounded-full bg-brand-100 overflow-hidden"><div className={`h-full rounded-full ${seatsLeft ? 'bg-brand' : 'bg-critical'}`} style={{ width: `${Math.min(100, (roster.length / schedule.seatsPerMentor) * 100)}%` }} /></div>
+          <Button onClick={() => setShowForm((v) => !v)}>{showForm ? 'Close' : `＋ Add one ${labels.student.toLowerCase()}`}</Button>
+        </div>
       </div>
 
+      {showForm && (
+        <Card className="mb-4">
+          <form onSubmit={addOne}>
+            <SectionTitle title={`Add one ${labels.student.toLowerCase()}`} subtitle="Same checks as the sheet. They get their Student ID by email, and the parent gets a WhatsApp, immediately." />
+            <div className="grid sm:grid-cols-3 gap-3">
+              <Field label="Name"><input className="input" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+              <Field label="Phone"><input className="input" required inputMode="numeric" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} /></Field>
+              <Field label="Email"><input className="input" required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
+              <Field label={`${labels.parent} name`} hint="Optional"><input className="input" value={form.parentName} onChange={(e) => setForm({ ...form, parentName: e.target.value })} /></Field>
+              <Field label={`${labels.parent} phone`} hint={`Enables the ${labels.parent.toLowerCase()} portal`}><input className="input" inputMode="numeric" value={form.parentPhone} onChange={(e) => setForm({ ...form, parentPhone: e.target.value.replace(/\D/g, '').slice(0, 10) })} /></Field>
+              <div className="flex items-end"><Button type="submit" className="w-full" disabled={!seatsLeft}>{seatsLeft ? 'Enrol and send Student ID' : 'Batch full'}</Button></div>
+            </div>
+          </form>
+        </Card>
+      )}
+
       <Card className="mb-4">
-        <SectionTitle title={`Add ${labels.student.toLowerCase()}s from Excel`} subtitle="Three columns: Name, Phone, Email. Every row is checked before a single email goes out." action={<Button variant="ghost" size="sm" onClick={downloadTemplate}>⬇ Download template</Button>} />
+        <SectionTitle title={`Add ${labels.student.toLowerCase()}s from Excel`} subtitle={`Columns: Name, Phone, Email, ${labels.parent} name, ${labels.parent} phone. Every row is checked before a single message goes out.`} action={<Button variant="ghost" size="sm" onClick={downloadTemplate}>⬇ Download template</Button>} />
         {!rows ? (
           <label className="block cursor-pointer rounded-2xl border-2 border-dashed border-brand-200 bg-brand-soft p-8 text-center hover:border-brand transition">
             <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFile} />
@@ -158,7 +193,7 @@ export default function StudentsPage() {
             <tbody>
               {filtered.slice(0, 60).map((s) => (
                 <tr key={s.id} className="border-t border-line hover:bg-page/60">
-                  <td className="px-4 py-2"><span className="flex items-center gap-2"><Avatar name={s.name} size="sm" /><span className="font-semibold">{s.name}</span></span></td>
+                  <td className="px-4 py-2"><Link href={`/mentor/student?id=${s.id}`} className="flex items-center gap-2 hover:text-brand"><Avatar name={s.name} size="sm" /><span className="font-semibold">{s.name}</span><span className="text-[11px] text-ink-3">Day {s.day || 1}</span></Link></td>
                   <td className="px-4 py-2 font-mono text-xs">{s.id}</td>
                   <td className="px-4 py-2 font-mono text-xs">{s.phone}</td>
                   <td className="px-4 py-2"><Pill tone={s.activation === 'Active' ? 'good' : 'warn'}>{s.activation}</Pill></td>
