@@ -65,8 +65,8 @@ Rule: each mentor holds at most **50 students**.
 Because mentors enrol their own students, assignment is automatic by construction: every student in a mentor's sheet lands in that mentor's batch. The system's job is to protect the limit and prevent duplicates.
 
 1. The **Add students** screen always shows seats remaining, for example "38 of 50 seats filled, 12 left", before the mentor uploads anything.
-2. If a sheet contains more valid rows than seats, the mentor chooses which rows to enrol within the limit. The remaining rows are held in a **waiting list** visible to the owner.
-3. The owner places waiting students with another mentor who has room, or adds a new mentor. Nothing is lost, and no mentor can exceed 50.
+2. Every mentor uploads one sheet of up to 50 students. Rows beyond the seats left are rejected in the preview with the reason "Batch is full", so no mentor can exceed 50.
+3. If more students arrive, the admin adds another mentor, who uploads their own sheet.
 4. Enrolment is one student, one batch. A phone number or email already enrolled under any mentor is rejected at upload with a clear message, so the same student can never appear in two batches.
 
 The owner can transfer a student between batches at any time; the student's history moves with them.
@@ -183,7 +183,7 @@ Designed around "what do I need to do right now":
 
 1. **Overview**: total students, active today, average batch completion, average verification turnaround per mentor.
 2. **Mentor scorecard**: assignment consistency, verification speed, batch completion rate, batch average score. This is how the owner spots mentors who need support.
-3. **Capacity and waiting list**: seats left per mentor, students waiting for a seat, one-tap placement of a waiting student with a mentor who has room, and the projected date a new mentor is needed.
+3. **Capacity**: seats left per mentor and the projected date a new mentor is needed.
 4. **Master plan**: publish a task to every batch at once; mentors can accept it or replace it for their batch.
 5. **Content library**: shared question banks and materials for all mentors.
 6. **Announcements**: broadcast to everyone, one batch, or all mentors.
@@ -230,7 +230,7 @@ Designed around "what do I need to do right now":
 The existing app already has Next.js, Supabase, AI quiz generation, results with weak-topic analysis, flashcards and a leaderboard. The plan is to extend it rather than start over.
 
 - **Auth.** Replace the hard-coded teacher password and name-only student entry with Supabase Auth. Students use email OTP; mentors and the owner use email + password. A `profiles` table holds role, Student ID, phone and batch. Enrolment creates the student's auth user server-side from the mentor's sheet, so students never register themselves.
-- **Data model additions.** `batches`, `profiles`, `enrolment_imports`, `waiting_list`, `tasks`, `task_submissions`, `uploads`, `streaks`, `points_ledger`, `badges`, `announcements`.
+- **Data model additions.** `batches`, `profiles`, `enrolment_imports`, `tasks`, `task_submissions`, `uploads`, `streaks`, `points_ledger`, `badges`, `announcements`.
 - **Excel import.** Parse `.xlsx` and `.csv` on the server with SheetJS, validate every row, then enrol in a single transaction so a half-imported sheet can never happen. The original file and per-row result are stored on `enrolment_imports`. The existing `quizzes`, `questions` and `attempts` tables become the in-app test engine behind a task.
 - **Isolation.** Row-level security policies keyed on `batch_id`. API routes stop using the service-role key for reads.
 - **Uploads.** A private Supabase Storage bucket with signed URLs, and client-side image compression before upload.
@@ -245,7 +245,7 @@ The existing app already has Next.js, Supabase, AI quiz generation, results with
 
 | Phase | Scope | Outcome |
 |---|---|---|
-| **1. Foundation** (2 to 3 weeks) | Auth for all three roles, mentor Excel upload with validation preview, Student ID by email, 50-seat limit with waiting list, batch isolation, daily task (in-app + manual), proof upload, mentor tick, streak, basic points, batch leaderboard | A batch can run its daily loop end to end |
+| **1. Foundation** (2 to 3 weeks) | Auth for all three roles, mentor Excel upload with validation preview, Student ID by email, 50-seat limit, batch isolation, daily task (in-app + manual), proof upload, mentor tick, streak, basic points, batch leaderboard | A batch can run its daily loop end to end |
 | **2. Insight** (2 weeks) | Full analysis views, reminders, task templates and weekly planner, mentor heatmap, owner overview and mentor scorecard, exports | Mentors get faster; the owner gets visibility |
 | **3. Delight** (ongoing) | Badges, levels, rewards catalogue, AI verification assist, doubt threads, weekly report cards, Hindi UI, parent digest | Retention and word of mouth |
 
@@ -259,7 +259,7 @@ The existing app already has Next.js, Supabase, AI quiz generation, results with
 4. When a mentor leaves, does the batch go to one replacement mentor or get redistributed?
 5. Can a student ask to change mentor, and who approves?
 6. Which reward types should exist in the catalogue at launch?
-7. Over-capacity: when a mentor's sheet has more students than seats left, should the extras wait for the owner to place them (recommended) or be rejected outright?
+7. Over-capacity: decided in v0.4. Every mentor uploads exactly one sheet of up to 50; extra rows are rejected.
 8. Welcome message: email only, or email plus WhatsApp to the phone number from the sheet?
 
 ---

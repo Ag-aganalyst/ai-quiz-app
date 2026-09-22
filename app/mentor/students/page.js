@@ -39,7 +39,10 @@ function validate(rows, existing, seatsLeft) {
     }
     if (state === 'ready') {
       placed += 1;
-      if (placed > seatsLeft) state = 'waiting';
+      if (placed > seatsLeft) {
+        state = 'skip';
+        problems.push('Batch is full: every mentor holds 50');
+      }
     }
     if (parentPhone && !/^\d{10}$/.test(parentPhone)) problems.push('Parent phone must be 10 digits');
     return { name, phone, email, parentName, parentPhone, state, problems };
@@ -84,25 +87,24 @@ export default function StudentsPage() {
 
   function confirm() {
     const ready = preview.filter((r) => r.state === 'ready');
-    const waiting = preview.filter((r) => r.state === 'waiting').length;
     const start = 151 + roster.length;
     setRoster((r) => r.concat(ready.map((x, i) => ({ id: `BM-26-0${start + i}`, name: x.name, phone: x.phone, email: x.email, parent: { name: x.parentName, phone: x.parentPhone }, status: 'not_started', streak: 0, points: 0, day: 1, activation: 'Invited', batch: MENTOR.batch }))));
     setRows(null);
-    setToast(`${ready.length} enrolled and emailed their Student ID.${waiting ? ` ${waiting} sent to the ${labels.admin.toLowerCase()}'s waiting list.` : ''}`);
+    setToast(`${ready.length} enrolled and emailed their Student ID.`);
   }
 
   function addOne(e) {
     e.preventDefault();
     const [row] = validate([[form.name, form.phone, form.email, form.parentName, form.parentPhone]], existing, seatsLeft);
-    if (row.state !== 'ready') return setToast(row.problems[0] || (row.state === 'waiting' ? 'Batch is full. Added to the waiting list.' : 'Check the details.'));
+    if (row.state !== 'ready') return setToast(row.problems[0] || 'Check the details.');
     setRoster((r) => r.concat([{ id: `BM-26-0${151 + r.length}`, name: row.name, phone: row.phone, email: row.email, parent: { name: row.parentName, phone: row.parentPhone }, status: 'not_started', streak: 0, points: 0, day: 1, activation: 'Invited', batch: MENTOR.batch }]));
     setForm({ name: '', phone: '', email: '', parentName: '', parentPhone: '' });
     setShowForm(false);
     setToast(`${row.name} enrolled. Student ID emailed${row.parentPhone ? ', parent messaged on WhatsApp' : ''}. Day 1 starts today.`);
   }
 
-  const tone = { ready: 'good', fix: 'warn', skip: 'critical', waiting: 'brand' };
-  const label = { ready: 'Ready', fix: 'Needs a fix', skip: 'Will skip', waiting: 'Waiting list' };
+  const tone = { ready: 'good', fix: 'warn', skip: 'critical' };
+  const label = { ready: 'Ready', fix: 'Needs a fix', skip: 'Will skip' };
 
   return (
     <AppShell role="mentor" user={{ name: MENTOR.name, sub: MENTOR.batch, photo: profile.photo }}>
@@ -147,7 +149,7 @@ export default function StudentsPage() {
         ) : (
           <div>
             <div className="flex flex-wrap gap-2 mb-3">
-              {['ready', 'fix', 'skip', 'waiting'].map((k) => (
+              {['ready', 'fix', 'skip'].map((k) => (
                 <Pill key={k} tone={tone[k]}>{label[k]} · {preview.filter((r) => r.state === k).length}</Pill>
               ))}
             </div>

@@ -17,7 +17,6 @@ function health(m) {
 export default function AdminOverview() {
   const { labels, schedule, brand, challenge } = useSettings();
   const profile = useMentorProfile();
-  const [waiting, setWaiting] = useState(ADMIN.waiting);
   const [toast, setToast] = useState('');
   const k = ADMIN.kpis;
   const alertTone = { critical: 'critical', warn: 'warn', brand: 'brand', good: 'good' };
@@ -45,7 +44,7 @@ export default function AdminOverview() {
         <StatTile label="Active today" value={k.activeToday} delta="+9" hint="vs. yesterday" />
         <StatTile label="Completion" value={`${k.completion}%`} delta="+2" hint="all batches" />
         <StatTile label="Verify turnaround" value={`${k.turnaroundHrs}h`} delta="-3h" hint="avg" />
-        <StatTile label="Waiting for seat" value={waiting.length} hint={`${k.seatsLeft} seats free`} />
+        <StatTile label="Seats free" value={k.seatsLeft} hint={`${schedule.seatsPerMentor} per mentor`} />
       </div>
 
       <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-4 mt-4 rise-3">
@@ -123,26 +122,7 @@ export default function AdminOverview() {
         </div>
       </Card>
 
-      <div className="grid lg:grid-cols-2 gap-4 mt-4">
-        <Card>
-          <SectionTitle title="Waiting list" subtitle="Students a mentor's sheet could not seat. Place them with a mentor who has room." />
-          {waiting.length === 0 ? (
-            <div className="rounded-xl bg-brand-soft p-4 text-sm text-brand-700 text-center">Nobody is waiting. 🎉</div>
-          ) : (
-            <ul className="space-y-2">
-              {waiting.map((w) => (
-                <li key={w.email} className="flex items-center gap-3 rounded-xl border border-line p-2.5">
-                  <Avatar name={w.name} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold truncate">{w.name}</div>
-                    <div className="text-xs text-ink-2">from {w.from} · waiting {w.since} · {w.email}</div>
-                  </div>
-                  <Button size="sm" onClick={() => { setWaiting((l) => l.filter((x) => x.email !== w.email)); setToast(`${w.name} placed in Batch D. Day 1 starts today.`); }}>Place in Batch D</Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+      <div className="mt-4">
         <Card>
           <SectionTitle title="Alerts" subtitle="Rules you set in Customise fire these" />
           <ul className="space-y-2">
