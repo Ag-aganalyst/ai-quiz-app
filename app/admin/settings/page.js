@@ -29,6 +29,7 @@ const POINT_ROWS = [
   ['scoreBonusMax', 'Score bonus (maximum, proportional to %)'],
   ['uploadProof', 'Upload proof'],
   ['verified', 'Mentor verifies'],
+  ['testAnalysis', 'Test analysis verified by mentor'],
   ['earlyBird', 'Early bird (before the early-bird time)'],
   ['rank1', 'Rank 1 in the batch for the day'],
   ['rank2', 'Rank 2'],

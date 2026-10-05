@@ -8,7 +8,8 @@ import { useSettings } from '@/lib/settings-store';
 const NAV = {
   student: [
     { href: '/student', label: 'Home', icon: '🏠' },
-    { href: '/student/task', label: "Today's task", icon: '🎯' },
+    { href: '/student/task', label: 'Daily tasks', icon: '🎯' },
+    { href: '/student/chat', label: 'Chat', icon: '💬' },
     { href: '/student#leaderboard', label: 'Rankings', icon: '🏆' },
   ],
   parent: [
@@ -19,12 +20,14 @@ const NAV = {
     { href: '/mentor', label: 'Dashboard', icon: '📊' },
     { href: '/mentor/verify', label: 'Verify', icon: '✅' },
     { href: '/mentor/students', label: 'Students', icon: '👥' },
+    { href: '/mentor/chat', label: 'Chat', icon: '💬' },
     { href: '/mentor/profile', label: 'Profile', icon: '🪪' },
   ],
   admin: [
     { href: '/admin', label: 'Overview', icon: '🧭' },
     { href: '/admin/tasks', label: 'Task plan', icon: '🗓' },
     { href: '/admin/mentors', label: 'Mentors', icon: '🧑‍🏫' },
+    { href: '/admin/chat', label: 'Chat', icon: '💬' },
     { href: '/admin/settings', label: 'Customise', icon: '🎨' },
   ],
 };

@@ -6,6 +6,7 @@ import ChallengeGrid from '@/components/viz/ChallengeGrid';
 import { Avatar, Button, Card, Pill, SectionTitle, StatTile, Toast, Toggle } from '@/components/ui';
 import { useSettings } from '@/lib/settings-store';
 import { useMentorProfile } from '@/lib/mentor-profile-store';
+import { useTestRecords } from '@/lib/test-records-store';
 import { CHALLENGE_PLAN, PARENT, fmtDate, fmtLong, mentorById, studentById } from '@/lib/mock-data';
 
 const STATUS = { verified: ['good', '✓ Done and verified'], submitted: ['brand', '◔ Submitted, awaiting tick'], not_started: ['warn', '○ Not started yet'], missed: ['critical', '✕ Missed'] };
@@ -21,7 +22,11 @@ export default function ParentHome() {
   const mentorPhoto = mentor.id === 'm1' ? mentorProfile.photo : mentor.photo;
   const today = CHALLENGE_PLAN[child.day - 1];
   const [tone, statusText] = STATUS[child.status] || STATUS.not_started;
-  const tests = [...child.tests].reverse();
+  const records = useTestRecords().filter((r) => r.studentId === child.id);
+  const tests = [
+    ...child.tests.map((t) => ({ key: `d${t.day}`, name: t.name, date: t.date, marks: t.marks, outOf: t.outOf, pct: t.pct, kind: 'Daily' })),
+    ...records.map((r) => ({ key: r.id, name: `${r.testId} · ${r.type}`, date: new Date(`${r.date}T00:00:00`), marks: r.obtained, outOf: r.max, pct: Math.round((r.obtained / r.max) * 100), kind: r.status === 'verified' ? 'Centre test · verified' : 'Centre test · analysis pending' })),
+  ].sort((a, b) => b.date - a.date);
   const onTrack = child.missedLast5 <= 1 && child.status !== 'missed';
 
   return (
@@ -67,7 +72,7 @@ export default function ParentHome() {
             <div className="text-[10px] uppercase font-semibold tracking-wide text-ink-3">{labels.mentor}</div>
             <div className="font-display font-bold text-brand-deep">{mentor.name}</div>
             <div className="text-xs text-ink-2">{mentor.subject} · {mentor.qualification}</div>
-            <Button size="sm" variant="secondary" className="mt-2" onClick={() => setToast(`${mentor.name.split(' ').slice(-1)[0]} will call you within a day.`)}>📞 Request a call</Button>
+            <Button size="sm" variant="secondary" className="mt-2" onClick={() => setToast(`${mentor.name} will call you within a day.`)}>📞 Request a call</Button>
           </div>
         </div>
       </Card>
@@ -75,20 +80,20 @@ export default function ParentHome() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4 rise-3">
         <StatTile label="Today's task" value={<Pill tone={tone}>{statusText}</Pill>} hint={`Day ${child.day} · ${today.title}`} />
         <StatTile label={labels.streak} value={`${child.streak} days`} hint={`closes ${schedule.deadline} daily`} />
-        <StatTile label="Average test %" value={child.avgScore != null ? `${child.avgScore}%` : '—'} hint={`${child.tests.length} tests so far`} />
+        <StatTile label="Average test %" value={child.avgScore != null ? `${child.avgScore}%` : '—'} hint={`${tests.length} tests so far`} />
         <StatTile label="Tasks completed" value={`${Math.max(0, child.day - 1 - (child.missedDays ? child.missedDays.length : child.missedLast5 || 0))}/${child.day - 1}`} hint="verified by mentor" />
       </div>
 
       <div className="grid lg:grid-cols-[1fr_1fr] gap-4 mt-4 rise-4">
         <Card id="tests">
-          <SectionTitle title="Tests" subtitle="Test name and marks appear here as soon as the mentor confirms them" action={tests.length > 1 && <Sparkline values={child.tests.slice(-10).map((t) => t.pct)} width={120} height={32} />} />
+          <SectionTitle title="Tests" subtitle="Daily tests from the app and centre tests the mentor typed in, as soon as marks are confirmed" action={tests.length > 1 && <Sparkline values={child.tests.slice(-10).map((t) => t.pct)} width={120} height={32} />} />
           <div className="max-h-96 overflow-auto rounded-xl border border-line">
             <table className="w-full text-sm">
               <thead className="bg-page text-left text-xs uppercase tracking-wide text-ink-3 sticky top-0"><tr><th className="px-3 py-2">Test</th><th className="px-3 py-2">Date</th><th className="px-3 py-2 text-right">Marks</th><th className="px-3 py-2 text-right">%</th></tr></thead>
               <tbody>
                 {tests.map((t) => (
-                  <tr key={t.day} className="border-t border-line">
-                    <td className="px-3 py-2">{t.name}</td>
+                  <tr key={t.key} className="border-t border-line">
+                    <td className="px-3 py-2">{t.name}{t.kind !== 'Daily' && <span className="block text-[10px] text-ink-3">{t.kind}</span>}</td>
                     <td className="px-3 py-2 text-xs text-ink-2 whitespace-nowrap">{fmtDate(t.date, false)}</td>
                     <td className="px-3 py-2 text-right tabular">{t.marks}/{t.outOf}</td>
                     <td className="px-3 py-2 text-right tabular font-semibold">{t.pct}%</td>

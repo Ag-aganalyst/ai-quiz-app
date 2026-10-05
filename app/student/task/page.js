@@ -3,18 +3,18 @@ import { useEffect, useMemo, useState } from 'react';
 import AppShell from '@/components/shell/AppShell';
 import { Button, Card, Pill, ProgressRing, Stepper, Toast } from '@/components/ui';
 import { useSettings } from '@/lib/settings-store';
-import { MENTOR, STUDENT_ME, TODAY_TASK, dateOfDay, fmtDate } from '@/lib/mock-data';
+import { updateTestRecord, useTestRecords } from '@/lib/test-records-store';
+import { MENTOR, STUDENT_ME, TEST_RECORD_STATUS, TODAY_TASK, dateOfDay, firstName, fmtDate } from '@/lib/mock-data';
 
 const STAGES = ['Brief', 'Test', 'Analysis', 'Upload', 'Tick'];
 
-export default function StudentTask() {
+function DailyTaskFlow({ onToast }) {
   const { labels, points: P, schedule } = useSettings();
   const [stage, setStage] = useState(0);
   const [answers, setAnswers] = useState({});
   const [current, setCurrent] = useState(0);
   const [secs, setSecs] = useState(TODAY_TASK.questions.length * 60);
   const [files, setFiles] = useState([]);
-  const [toast, setToast] = useState('');
   const qs = TODAY_TASK.questions;
 
   useEffect(() => {
@@ -34,12 +34,11 @@ export default function StudentTask() {
   }
 
   return (
-    <AppShell role="student" user={{ name: STUDENT_ME.name, sub: STUDENT_ME.id }}>
-      <Toast message={toast} onDone={() => setToast('')} />
+    <>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide text-ink-3">Day {STUDENT_ME.day} · {fmtDate(dateOfDay(STUDENT_ME.joined, STUDENT_ME.day))} · {TODAY_TASK.subject}</div>
-          <h1 className="font-display text-2xl font-bold text-brand-deep">{TODAY_TASK.title}</h1>
+          <h2 className="font-display text-2xl font-bold text-brand-deep">{TODAY_TASK.title}</h2>
         </div>
         <Stepper steps={STAGES} current={stage} />
       </div>
@@ -97,7 +96,7 @@ export default function StudentTask() {
             {current < qs.length - 1 ? (
               <Button onClick={() => setCurrent(current + 1)}>Next →</Button>
             ) : (
-              <Button variant="accent" onClick={() => { setStage(2); setToast(`Submitted. +${P.submitOnTime} ${labels.points} and your streak is safe.`); }}>Submit test</Button>
+              <Button variant="accent" onClick={() => { setStage(2); onToast(`Submitted. +${P.submitOnTime} ${labels.points} and your streak is safe.`); }}>Submit test</Button>
             )}
           </div>
         </Card>
@@ -164,7 +163,7 @@ export default function StudentTask() {
             )}
             <div className="mt-5 flex items-center justify-between">
               <span className="text-xs text-ink-3">{files.length ? `${files.length} page${files.length > 1 ? 's' : ''} ready` : 'No pages yet'}</span>
-              <Button variant="accent" size="lg" disabled={!files.length} onClick={() => { setStage(4); setToast(`Uploaded. +${P.uploadProof} ${labels.points}. Waiting for ${MENTOR.name.split(' ')[0]}'s tick.`); }}>Submit proof</Button>
+              <Button variant="accent" size="lg" disabled={!files.length} onClick={() => { setStage(4); onToast(`Uploaded. +${P.uploadProof} ${labels.points}. Waiting for ${firstName(MENTOR.name)}'s tick.`); }}>Submit proof</Button>
             </div>
             <button type="button" className="mt-3 text-xs text-ink-3 hover:text-brand underline-offset-2 hover:underline" onClick={() => { setFiles([{ name: 'demo', url: '', size: 0 }]); }}>No camera here? Use a demo page</button>
           </Card>
@@ -208,6 +207,135 @@ export default function StudentTask() {
           </Card>
         </div>
       )}
+    </>
+  );
+}
+
+const ANALYSIS_STEPS = ['Score updated', 'Your analysis', 'Mentor verified'];
+
+function TestAnalysisTab({ onToast }) {
+  const { labels, points: P } = useSettings();
+  const records = useTestRecords().filter((r) => r.studentId === STUDENT_ME.id).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const [picked, setPicked] = useState({});
+  const due = records.filter((r) => r.status === 'awaiting_analysis' || r.status === 'sent_back');
+
+  function pick(id, e) {
+    const list = Array.from(e.target.files || []).slice(0, 8).map((f) => ({ name: f.name, url: f.type.startsWith('image/') ? URL.createObjectURL(f) : '', isPdf: f.type === 'application/pdf' }));
+    setPicked((p) => ({ ...p, [id]: list }));
+  }
+  function submit(r) {
+    const files = picked[r.id] || [];
+    updateTestRecord(r.id, { status: 'analysis_uploaded', files: files.map((f) => ({ name: f.name })), uploadedAt: 'just now' });
+    setPicked((p) => ({ ...p, [r.id]: [] }));
+    onToast(`Analysis for ${r.testId} sent to ${firstName(MENTOR.name)}. +${P.testAnalysis} ${labels.points} once verified.`);
+  }
+
+  return (
+    <div className="space-y-4 rise">
+      <Card className="bg-brand-gradient text-white border-0">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="font-display text-xl font-bold">Test analysis</div>
+            <p className="text-sm text-white/80 mt-1 max-w-2xl">Tests you take at the centre do not run in the app. Your {labels.mentor.toLowerCase()} types your score here; then it is your turn to analyse every wrong question on paper and upload photos or a PDF.</p>
+          </div>
+          <div className="rounded-xl bg-white/10 px-4 py-2 text-center"><div className="font-display text-2xl font-extrabold">{due.length}</div><div className="text-[11px] text-white/70">analysis due</div></div>
+        </div>
+        <ol className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-white/80">
+          <li>1 · Appear for the test</li><li>2 · {labels.mentor} updates your score</li><li>3 · You upload your analysis</li><li>4 · {labels.mentor} verifies, +{P.testAnalysis} {labels.points}, files deleted</li>
+        </ol>
+      </Card>
+
+      {records.length === 0 && <Card><div className="text-center text-sm text-ink-3 py-8">No test scores yet. They appear here as soon as your mentor adds one.</div></Card>}
+
+      {records.map((r) => {
+        const st = TEST_RECORD_STATUS[r.status];
+        const pct = Math.round((r.obtained / r.max) * 100);
+        const step = r.status === 'verified' ? 2 : r.status === 'analysis_uploaded' ? 2 : 1;
+        const files = picked[r.id] || [];
+        return (
+          <Card key={r.id}>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-display text-lg font-bold text-brand-deep">{r.testId}</span>
+                  <Pill tone="neutral">{r.type}</Pill>
+                  <Pill tone={st.tone} icon={st.icon}>{st.label}</Pill>
+                </div>
+                <div className="text-sm text-ink-2 mt-1">{fmtDate(new Date(`${r.date}T00:00:00`))} · added by {MENTOR.name}</div>
+              </div>
+              <div className="text-right">
+                <div className="font-display text-3xl font-extrabold text-brand-deep tabular">{r.obtained}<span className="text-base text-ink-3">/{r.max}</span></div>
+                <div className="text-xs text-ink-2">{pct}%</div>
+              </div>
+            </div>
+            <div className="mt-3"><Stepper steps={ANALYSIS_STEPS} current={r.status === 'verified' ? 3 : step} /></div>
+
+            {r.status === 'sent_back' && <div className="mt-3 rounded-xl bg-[#fdeaea] border border-[#f2b8b8] px-3 py-2 text-sm text-[#8f1f1f]">↩ Sent back: {r.reason}</div>}
+
+            {(r.status === 'awaiting_analysis' || r.status === 'sent_back') && (
+              <div className="mt-4 grid md:grid-cols-[1fr_auto] gap-4 items-start">
+                <div>
+                  <label className="block cursor-pointer rounded-2xl border-2 border-dashed border-brand-200 bg-brand-soft p-5 text-center hover:border-brand transition">
+                    <input type="file" accept="image/*,.pdf" multiple className="hidden" onChange={(e) => pick(r.id, e)} />
+                    <div className="text-3xl" aria-hidden="true">📸</div>
+                    <div className="mt-1 font-display font-bold text-brand-deep">Click pictures of your analysis, or upload a PDF or PNG</div>
+                    <div className="text-xs text-ink-3 mt-1">Every wrong question: what you chose, the right answer, why. Up to 8 files.</div>
+                  </label>
+                  {files.length > 0 && (
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {files.map((f, i) => (
+                        <li key={i} className="flex items-center gap-2 rounded-lg border border-line bg-white px-2 py-1 text-xs">
+                          {f.url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={f.url} alt="" className="h-8 w-8 rounded object-cover" />
+                          ) : (
+                            <span aria-hidden="true">📄</span>
+                          )}
+                          {f.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button size="lg" variant="accent" disabled={!files.length} onClick={() => submit(r)}>Submit analysis</Button>
+                  <button type="button" className="text-xs text-ink-3 hover:text-brand underline-offset-2 hover:underline" onClick={() => setPicked((p) => ({ ...p, [r.id]: [{ name: 'demo-analysis.jpg', url: '' }] }))}>No camera here? Use a demo file</button>
+                </div>
+              </div>
+            )}
+
+            {r.status === 'analysis_uploaded' && (
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-ink-2">
+                <span>⏳ Waiting for {MENTOR.name} to verify.</span>
+                {r.files.map((f, i) => <span key={i} className="rounded-lg border border-line bg-white px-2 py-0.5 text-xs">📎 {f.name}</span>)}
+              </div>
+            )}
+            {r.status === 'verified' && (
+              <div className="mt-3 rounded-xl bg-[#f3fbf3] border border-[#bfe6bf] px-3 py-2 text-sm text-[#006300]">✓ Verified{r.verifiedOn ? ` on ${fmtDate(new Date(`${r.verifiedOn}T00:00:00`))}` : ''} · +{P.testAnalysis} {labels.points} · your uploaded files were deleted after verification.</div>
+            )}
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function StudentTask() {
+  const { labels } = useSettings();
+  const [tab, setTab] = useState('daily');
+  const [toast, setToast] = useState('');
+  const dueCount = useTestRecords().filter((r) => r.studentId === STUDENT_ME.id && (r.status === 'awaiting_analysis' || r.status === 'sent_back')).length;
+  return (
+    <AppShell role="student" user={{ name: STUDENT_ME.name, sub: STUDENT_ME.id }}>
+      <Toast message={toast} onDone={() => setToast('')} />
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h1 className="font-display text-2xl font-bold text-brand-deep">{labels.task}s</h1>
+        <div className="flex gap-1 rounded-full bg-white border border-line p-1" role="tablist">
+          <button type="button" role="tab" aria-selected={tab === 'daily'} onClick={() => setTab('daily')} className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${tab === 'daily' ? 'bg-brand text-white' : 'text-ink-2 hover:bg-page'}`}>Daily task</button>
+          <button type="button" role="tab" aria-selected={tab === 'analysis'} onClick={() => setTab('analysis')} className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${tab === 'analysis' ? 'bg-brand text-white' : 'text-ink-2 hover:bg-page'}`}>Test analysis{dueCount ? ` · ${dueCount}` : ''}</button>
+        </div>
+      </div>
+      {tab === 'daily' ? <DailyTaskFlow onToast={setToast} /> : <TestAnalysisTab onToast={setToast} />}
     </AppShell>
   );
 }

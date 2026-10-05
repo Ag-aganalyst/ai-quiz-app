@@ -1,7 +1,8 @@
 # Brainy Medic — Mentor-Led Daily Practice Platform
 
 **Product specification and customisation ideas**
-Version 0.4 · September 2026 · Draft for admin review
+Version 0.5 · October 2026 · Draft for admin review
+Change in 0.5: group chat rooms for every portal, the student's Daily task / Test analysis tabs, and the mentor's Add Test Record flow for tests taken at the centre (section 16).
 Change in 0.4: renamed to Brainy Medic (BNM), Owner becomes Admin, a Parent Portal, the 90-day challenge on each student's own Day N with Sundays counting, admin-authored tasks with mentors verifying only, mentor reports and profiles, manual add for mentors and students, mentor photos, and rankings across roles (section 15).
 Change in 0.2: students are enrolled by their mentor from an Excel sheet, not by the owner.
 
@@ -340,6 +341,29 @@ The UI prototype on the `claude/brainy-media-webapp-blgn1o` branch covers the la
 - Mentor sheet columns: Name, Phone, Email, Parent name, Parent phone. The single-student form uses the same checks.
 - Admin add-mentor form: name, email, phone, subject, batch name. Invite goes by email and WhatsApp.
 - Confirmed test marks, not self-marked ones, feed the parent portal and the average.
+
+---
+
+## 16. Version 0.5 changes (requested 5 Oct 2026)
+
+### Group chat, Discord-style
+- **Rooms.** One room per batch (its students and their mentor), one Mentors + Admin room, and one All students + Admin room that mentors are not in.
+- **Who sees what.** Students: their batch room and the all-students room. Mentors: their batch room and the mentors' room. Admin: the mentors' room and the all-students room.
+- **Behaviour.** Anyone in a room can answer. Messages show the sender's name, role badge (Student, Mentor, Admin) and time, grouped by day, with a pinned message at the top, @mentions highlighted, and photo or PDF attachments. Enter sends, Shift+Enter adds a line.
+- **Prototype limits.** Messages live in the browser; real-time delivery across devices needs the backend.
+
+### Student: Daily task and Test analysis tabs
+- The Daily tasks page has two tabs. **Daily task** is the existing five-stage flow. **Test analysis** lists tests taken at the centre.
+- A test the student appears for outside the app is typed in by the mentor. The student then sees "Score updated · analysis due", analyses every wrong question on paper, and uploads photos, a PDF or a PNG. After the mentor verifies, the record shows Verified with the points earned and a note that the files were deleted.
+- A sent-back record shows the mentor's one-line reason and asks for a fresh upload.
+
+### Mentor: Add Test Record and verification
+- In Verify › Test analysis the mentor adds a record per student: Student, Test Type (Mock Test, PC Test, PHY Test, Part Test, Unit Test), Maximum Marks (1000, 400, 720, 360), Obtained Marks, Test Date, Test ID (for example UT-27-03, PT-03, MOCK-01). "Add & next student" keeps the form open for the next student.
+- Records are filtered by To verify, Analysis due, Sent back, Verified and All. Selecting a record shows the uploaded analysis; the mentor verifies it or sends it back with one line. Verification awards points and deletes the files; nothing is stored afterwards.
+- Parents see centre tests in their Tests table as soon as the score is typed, marked "analysis pending" until verified.
+
+### Points
+- Test analysis verified by the mentor: +15 Brainy Points, configurable in Customise › Points.
 
 ---
 

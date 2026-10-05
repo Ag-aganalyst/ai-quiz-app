@@ -8,11 +8,13 @@ import { MentorPodium, MentorTable, StarPerformers, TieBreakNote } from '@/compo
 import { Avatar, Button, Card, Pill, SectionTitle, StatTile, Toast } from '@/components/ui';
 import { useSettings } from '@/lib/settings-store';
 import { useMentorProfile } from '@/lib/mentor-profile-store';
-import { AT_RISK, CHALLENGE_PLAN, HARD_QUESTIONS, MENTOR, MENTOR_RANKING, SCORE_BUCKETS, STAR_PERFORMERS, STUDENTS, TASK_TYPES, TEST_ANALYSIS_QUEUE, VERIFY_QUEUE, dayGroups, fmtLong } from '@/lib/mock-data';
+import { useTestRecords } from '@/lib/test-records-store';
+import { AT_RISK, CHALLENGE_PLAN, HARD_QUESTIONS, MENTOR, MENTOR_RANKING, SCORE_BUCKETS, STAR_PERFORMERS, STUDENTS, TASK_TYPES, VERIFY_QUEUE, dayGroups, fmtLong, studentById } from '@/lib/mock-data';
 
 export default function MentorDashboard() {
   const { labels, schedule, challenge } = useSettings();
   const profile = useMentorProfile();
+  const analysesToVerify = useTestRecords().filter((r) => r.status === 'analysis_uploaded' && studentById(r.studentId)?.mentorId === MENTOR.id).length;
   const [queue, setQueue] = useState(VERIFY_QUEUE.slice(0, 3));
   const [toast, setToast] = useState('');
   const [selected, setSelected] = useState(null);
@@ -40,7 +42,7 @@ export default function MentorDashboard() {
         </div>
         <div className="flex gap-2">
           <Button href="/mentor/students" variant="secondary">＋ Add {labels.student.toLowerCase()}s</Button>
-          <Button href="/mentor/verify">Open verification inbox ({VERIFY_QUEUE.length + TEST_ANALYSIS_QUEUE.length})</Button>
+          <Button href="/mentor/verify">Open verification inbox ({VERIFY_QUEUE.length + analysesToVerify})</Button>
         </div>
       </div>
 
@@ -66,7 +68,7 @@ export default function MentorDashboard() {
           </div>
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="rounded-xl bg-white/10 px-4 py-2"><div className="font-display text-2xl font-extrabold">{submitted}<span className="text-sm text-white/60">/{STUDENTS.length}</span></div><div className="text-[11px] text-white/70">submitted</div></div>
-            <div className="rounded-xl bg-white/10 px-4 py-2"><div className="font-display text-2xl font-extrabold">{VERIFY_QUEUE.length + TEST_ANALYSIS_QUEUE.length}</div><div className="text-[11px] text-white/70">to verify</div></div>
+            <div className="rounded-xl bg-white/10 px-4 py-2"><div className="font-display text-2xl font-extrabold">{VERIFY_QUEUE.length + analysesToVerify}</div><div className="text-[11px] text-white/70">to verify</div></div>
             <div className="rounded-xl bg-white/10 px-4 py-2"><div className="font-display text-2xl font-extrabold">{notYet}</div><div className="text-[11px] text-white/70">not started</div></div>
           </div>
         </div>
@@ -103,7 +105,7 @@ export default function MentorDashboard() {
 
         <div className="space-y-4">
           <Card>
-            <SectionTitle title="Verification inbox" subtitle={`${VERIFY_QUEUE.length} daily tasks · ${TEST_ANALYSIS_QUEUE.length} test analyses`} action={<Button href="/mentor/verify" size="sm" variant="ghost">All →</Button>} />
+            <SectionTitle title="Verification inbox" subtitle={`${VERIFY_QUEUE.length} daily tasks · ${analysesToVerify} test analyses`} action={<Button href="/mentor/verify" size="sm" variant="ghost">All →</Button>} />
             {queue.length === 0 ? (
               <div className="rounded-xl bg-brand-soft p-4 text-sm text-brand-700 text-center">Daily tasks clear. Test analyses are waiting in the inbox.</div>
             ) : (
