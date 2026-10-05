@@ -1,7 +1,8 @@
 # Brainy Medic — Mentor-Led Daily Practice Platform
 
 **Product specification and customisation ideas**
-Version 0.5 · October 2026 · Draft for admin review
+Version 0.6 · October 2026 · Draft for admin review
+Change in 0.6: Announcements with images and reactions, per-student direct messages and subject doubt boxes for mentors, downloadable PDF test-analysis reports, study rooms per batch, and mentor-editable test types and marks (section 17).
 Change in 0.5: group chat rooms for every portal, the student's Daily task / Test analysis tabs, and the mentor's Add Test Record flow for tests taken at the centre (section 16).
 Change in 0.4: renamed to Brainy Medic (BNM), Owner becomes Admin, a Parent Portal, the 90-day challenge on each student's own Day N with Sundays counting, admin-authored tasks with mentors verifying only, mentor reports and profiles, manual add for mentors and students, mentor photos, and rankings across roles (section 15).
 Change in 0.2: students are enrolled by their mentor from an Excel sheet, not by the owner.
@@ -364,6 +365,34 @@ The UI prototype on the `claude/brainy-media-webapp-blgn1o` branch covers the la
 
 ### Points
 - Test analysis verified by the mentor: +15 Brainy Points, configurable in Customise › Points.
+
+---
+
+## 17. Version 0.6 changes (requested 5 Oct 2026)
+
+### Announcements
+- A tab above the chat in every portal: Announcements, Chat, Study room.
+- The admin posts to all batches or one batch; a mentor posts to their own batch. Posts carry text and an optional image.
+- Students cannot write. They react with 👍 ❤️ 🔥 👏 ✅, one tap each, and see reaction counts. The same feed appears in the student, mentor and admin portals.
+- The poster, and the admin, can delete a post.
+
+### Chat rooms for the mentor (54 for a full batch)
+- One private direct-message room per student, searchable by name, for personal questions. Nobody else can read it.
+- The batch group, and three doubt boxes: Physics Doubt Box, Chemistry Doubt Box, Biology Doubt Box. Anyone in the batch can answer.
+- Plus the Mentors + Admin room.
+- Students see the batch group, the three doubt boxes, their own direct room with the mentor, and the all-students room with the admin.
+
+### PDF reports
+- **Admin:** a test-analysis report for any mentor's whole batch, one row per student: tests appeared, analyses done, verified by the mentor, pending, average %. From the Mentors list or the mentor profile.
+- **Mentor:** the same batch report, and a per-student report listing every test with marks, percentage, status and verification date. From the Test analysis tab and the student profile.
+- Reports are real PDF files generated in the browser, auto-paginated.
+
+### Study room
+- A Study room tab for students and mentors shows their batch's Discord room: link, hours, note, and a Join on Discord button.
+- The admin sets or changes each batch's link, hours and note at any time from Chat › Study rooms. Changes show immediately.
+
+### Editable test options
+- In Add Test Record the mentor opens "Manage test types and maximum marks" to remove an option (for example PHY Test) or add a new one (for example Annual Test, or 500 marks). Existing records keep the values they were saved with.
 
 ---
 

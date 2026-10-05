@@ -10,7 +10,7 @@ import { fmtDate, fmtLong } from '@/lib/mock-data';
 const STATUS = { verified: ['good', '✓ Verified'], submitted: ['brand', '◔ Submitted'], not_started: ['neutral', '○ Not started'], missed: ['critical', '✕ Missed'] };
 
 /** Full student profile used by the admin and mentor consoles. `mentor` is the student's mentor record. */
-export default function StudentProfile({ student: s, mentor, mentorPhoto = '', backHref, backLabel = 'Back', onToast, canTransfer = false }) {
+export default function StudentProfile({ student: s, mentor, mentorPhoto = '', backHref, backLabel = 'Back', onToast, canTransfer = false, actions = null }) {
   const { labels, challenge } = useSettings();
   const [note, setNote] = useState('');
   const [st, msg] = STATUS[s.status] || STATUS.not_started;
@@ -20,7 +20,8 @@ export default function StudentProfile({ student: s, mentor, mentorPhoto = '', b
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button href={backHref} variant="ghost" size="sm">← {backLabel}</Button>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {actions}
           <Button size="sm" variant="secondary" onClick={() => toast(`Login reset. New code sent to ${s.email}.`)}>Reset login</Button>
           <Button size="sm" variant="secondary" onClick={() => toast(`Today excused for ${s.name.split(' ')[0]}. Streak preserved.`)}>Excuse today</Button>
           {canTransfer && <Button size="sm" variant="secondary" onClick={() => toast('Transfer started. Pick a batch with free seats.')}>Transfer batch</Button>}

@@ -7,7 +7,9 @@ import { Avatar, Button, Card, EmptyState, Field, Pill, Toast } from '@/componen
 import { useSettings } from '@/lib/settings-store';
 import { useMentorProfile } from '@/lib/mentor-profile-store';
 import { addTestRecord, updateTestRecord, useTestRecords } from '@/lib/test-records-store';
-import { ANCHOR, MAX_MARKS_OPTIONS, MENTOR, STUDENTS, TEST_RECORD_STATUS, TEST_TYPES, VERIFY_QUEUE, fmtDate, isoDate, studentById } from '@/lib/mock-data';
+import { setMaxMarks, setTestTypes, useTestOptions } from '@/lib/test-options-store';
+import { downloadBatchReport, downloadStudentReport } from '@/lib/reports';
+import { ANCHOR, MENTOR, STUDENTS, TEST_RECORD_STATUS, VERIFY_QUEUE, fmtDate, isoDate, studentById } from '@/lib/mock-data';
 
 const CHIPS = ['Good work', 'Show steps', 'Redo Q3', 'Neater handwriting', 'Label diagrams'];
 
@@ -107,9 +109,39 @@ function DailyTab({ onToast }) {
 const EMPTY_FORM = { studentId: '', type: '', max: '', obtained: '', date: isoDate(ANCHOR), testId: '' };
 const FILTERS = [['analysis_uploaded', 'To verify'], ['awaiting_analysis', 'Analysis due'], ['sent_back', 'Sent back'], ['verified', 'Verified'], ['all', 'All']];
 
+function OptionsEditor({ onToast }) {
+  const { types, maxMarks } = useTestOptions();
+  const [newType, setNewType] = useState('');
+  const [newMax, setNewMax] = useState('');
+  const addType = () => { const t = newType.trim(); if (!t) return; if (types.includes(t)) return onToast(`${t} already exists.`); setTestTypes([...types, t]); setNewType(''); onToast(`Added test type: ${t}.`); };
+  const addMax = () => { const n = Number(newMax); if (!n || n <= 0) return onToast('Enter a number above 0.'); setMaxMarks([...maxMarks, n]); setNewMax(''); onToast(`Added maximum marks: ${n}.`); };
+  return (
+    <div className="rounded-xl border border-line bg-page p-3 space-y-3">
+      <div className="text-xs text-ink-2">Add or remove options any time. Existing records keep the type and marks they were saved with.</div>
+      <div>
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-3 mb-1">Test types</div>
+        <div className="flex flex-wrap gap-1.5">
+          {types.map((t) => <span key={t} className="inline-flex items-center gap-1 rounded-full bg-white ring-1 ring-line px-2.5 py-1 text-xs font-semibold">{t}<button type="button" className="text-ink-3 hover:text-critical" aria-label={`Remove ${t}`} onClick={() => { setTestTypes(types.filter((x) => x !== t)); onToast(`Removed ${t}.`); }}>×</button></span>)}
+        </div>
+        <div className="mt-2 flex gap-2"><input className="input py-1.5 text-sm" placeholder="e.g. Annual Test" value={newType} onChange={(e) => setNewType(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addType(); } }} /><Button type="button" size="sm" variant="secondary" onClick={addType}>Add type</Button></div>
+      </div>
+      <div>
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-3 mb-1">Maximum marks</div>
+        <div className="flex flex-wrap gap-1.5">
+          {maxMarks.map((m) => <span key={m} className="inline-flex items-center gap-1 rounded-full bg-white ring-1 ring-line px-2.5 py-1 text-xs font-semibold tabular">{m}<button type="button" className="text-ink-3 hover:text-critical" aria-label={`Remove ${m}`} onClick={() => { setMaxMarks(maxMarks.filter((x) => x !== m)); onToast(`Removed ${m}.`); }}>×</button></span>)}
+        </div>
+        <div className="mt-2 flex gap-2"><input className="input py-1.5 text-sm w-40" type="number" min={1} placeholder="e.g. 500" value={newMax} onChange={(e) => setNewMax(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addMax(); } }} /><Button type="button" size="sm" variant="secondary" onClick={addMax}>Add marks</Button></div>
+      </div>
+    </div>
+  );
+}
+
 function TestRecordsTab({ onToast }) {
   const { labels, points: P } = useSettings();
-  const all = useTestRecords().filter((r) => studentById(r.studentId)?.mentorId === MENTOR.id);
+  const { types, maxMarks } = useTestOptions();
+  const [showOptions, setShowOptions] = useState(false);
+  const everything = useTestRecords();
+  const all = everything.filter((r) => studentById(r.studentId)?.mentorId === MENTOR.id);
   const [filter, setFilter] = useState('analysis_uploaded');
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -150,7 +182,10 @@ function TestRecordsTab({ onToast }) {
             <button key={k} type="button" onClick={() => setFilter(k)} className={`rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition ${filter === k ? 'bg-brand text-white ring-brand' : 'bg-white text-ink-2 ring-line hover:ring-brand-200'}`}>{label} · {counts[k]}</button>
           ))}
         </div>
-        <Button onClick={() => setOpen(true)}>＋ Add test record</Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => { downloadBatchReport(MENTOR.id, everything, { by: MENTOR.name }); onToast(`${MENTOR.batch} report downloaded as PDF.`); }}>⬇ Batch report (PDF)</Button>
+          <Button onClick={() => setOpen(true)}>＋ Add test record</Button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_360px] gap-4">
@@ -212,6 +247,7 @@ function TestRecordsTab({ onToast }) {
                 </>
               )}
               {selected.status === 'verified' && <div className="rounded-xl bg-[#f3fbf3] border border-[#bfe6bf] px-3 py-2 text-sm text-[#006300]">✓ Verified on {fmtDate(new Date(`${selected.verifiedOn}T00:00:00`))}. Files deleted.</div>}
+              <Button size="sm" variant="ghost" className="w-full" onClick={() => { downloadStudentReport(studentById(selected.studentId), everything, { by: MENTOR.name }); onToast('Student report downloaded as PDF.'); }}>⬇ {studentById(selected.studentId)?.name.split(' ')[0]}&apos;s report (PDF)</Button>
             </>
           )}
         </Card>
@@ -229,19 +265,21 @@ function TestRecordsTab({ onToast }) {
             <Field label="Test Type *">
               <select className="input" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} required>
                 <option value="">Select type</option>
-                {TEST_TYPES.map((t) => <option key={t}>{t}</option>)}
+                {types.map((t) => <option key={t}>{t}</option>)}
               </select>
             </Field>
             <Field label="Maximum Marks *">
               <select className="input" value={form.max} onChange={(e) => setForm({ ...form, max: e.target.value })} required>
                 <option value="">Max marks</option>
-                {MAX_MARKS_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
+                {maxMarks.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
             </Field>
             <Field label="Obtained Marks *"><input className="input" type="number" min={0} max={form.max || undefined} inputMode="numeric" value={form.obtained} onChange={(e) => setForm({ ...form, obtained: e.target.value })} required /></Field>
             <Field label="Test Date *"><input className="input" type="date" value={form.date} max={isoDate(ANCHOR)} onChange={(e) => setForm({ ...form, date: e.target.value })} required /></Field>
           </div>
           <Field label="Test ID *"><input className="input" placeholder="e.g. UT-27-03, PT-03, MOCK-01" value={form.testId} onChange={(e) => setForm({ ...form, testId: e.target.value })} required /></Field>
+          <button type="button" className="text-xs font-semibold text-brand hover:underline underline-offset-2" onClick={() => setShowOptions((v) => !v)}>{showOptions ? 'Hide options' : '⚙ Manage test types and maximum marks'}</button>
+          {showOptions && <OptionsEditor onToast={onToast} />}
           <div className="flex flex-wrap justify-end gap-2 pt-2">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="button" variant="secondary" onClick={(e) => save(e, true)}>Add & next student</Button>

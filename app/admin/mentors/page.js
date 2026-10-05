@@ -7,6 +7,8 @@ import Sparkline from '@/components/viz/Sparkline';
 import { Avatar, Button, Card, Field, Pill, SectionTitle, Toast } from '@/components/ui';
 import { useSettings } from '@/lib/settings-store';
 import { useMentorProfile } from '@/lib/mentor-profile-store';
+import { useTestRecords } from '@/lib/test-records-store';
+import { downloadBatchReport } from '@/lib/reports';
 import { MENTORS, MENTOR_RANKING, fmtDate, mentorReport } from '@/lib/mock-data';
 
 export default function MentorsPage() {
@@ -18,6 +20,7 @@ export default function MentorsPage() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: 'Biology', batch: `Batch ${String.fromCharCode(65 + MENTORS.length)}` });
   const [toast, setToast] = useState('');
   const photos = { m1: profile.photo };
+  const records = useTestRecords();
   const reports = useMemo(() => Object.fromEntries(mentors.map((m) => [m.id, mentorReport(m.id, range.from, range.to)])), [mentors, range]);
   const rankOf = (id) => MENTOR_RANKING.find((m) => m.id === id)?.rank;
 
@@ -72,7 +75,7 @@ export default function MentorsPage() {
         <div className="overflow-auto">
           <table className="w-full text-sm">
             <thead className="bg-page text-left text-xs uppercase tracking-wide text-ink-3">
-              <tr><th className="px-4 py-2">{labels.mentor}</th><th className="px-4 py-2">Rank</th><th className="px-4 py-2">Completion</th><th className="px-4 py-2 text-right">Verified</th><th className="px-4 py-2 text-right">Turnaround</th><th className="px-4 py-2 text-right">Avg test %</th><th className="px-4 py-2 text-right">Streaks kept</th><th className="px-4 py-2 text-right">At risk</th></tr>
+              <tr><th className="px-4 py-2">{labels.mentor}</th><th className="px-4 py-2">Rank</th><th className="px-4 py-2">Completion</th><th className="px-4 py-2 text-right">Verified</th><th className="px-4 py-2 text-right">Turnaround</th><th className="px-4 py-2 text-right">Avg test %</th><th className="px-4 py-2 text-right">Streaks kept</th><th className="px-4 py-2 text-right">At risk</th><th className="px-4 py-2 text-right">Test analysis</th></tr>
             </thead>
             <tbody>
               {mentors.map((m) => {
@@ -87,6 +90,7 @@ export default function MentorsPage() {
                     <td className="px-4 py-3 text-right tabular">{r.avgScore}%</td>
                     <td className="px-4 py-3 text-right tabular">{r.streaksKept}</td>
                     <td className="px-4 py-3 text-right tabular">{r.atRisk}</td>
+                    <td className="px-4 py-3 text-right"><Button size="sm" variant="secondary" onClick={() => { downloadBatchReport(m.id, records, { by: labels.admin }); setToast(`${m.batch} test-analysis report downloaded as PDF.`); }}>⬇ PDF</Button></td>
                   </tr>
                 );
               })}
